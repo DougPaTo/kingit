@@ -15,3 +15,4 @@ Descrição do projeto:
     Envio dos relatórios por email com status das atividades.
     Track das informações com GitHub
 
+Alguma modificação para testes.
