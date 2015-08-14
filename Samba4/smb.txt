@@ -1,0 +1,96 @@
+
+	######################################
+        #  . eh arquivo oculto               #
+        ######################################
+#        hidedotfiles                    = yes
+
+        ##################################################
+        #     Simular Lixeira e auditoria do Windows     #
+        ##################################################
+        vfs objects                      = recycle, full_audit
+        recycle:repository              = /dados/lixeira/%U
+        recycle:touch                   = no
+        recycle:keeptree                = yes
+        recycle:versions                = yes
+        recycle:exclude                 = *.tmp, *.temp, *.ldb, *.TMP, *.log, *.obj, ~*.*, *.bak, *.iso, ._*
+
+
+        ###Início da configuração de log
+        #O próximo passo é definir quais operações devem ser logadas:
+        # open = abriu arquivo
+        # opendir = abriu diretório
+        # write = escreveu arquivo
+        # unlink = excluiu arquivo
+        # rename = renomeou arquivo
+        # mkdir = criou diretório
+        # rmdir = excluiu diretório
+        # chmod = editou permissões do diretório/arquivo
+        # chown = mudou o dono de um arquivo
+        #full_audit:success = open, opendir, write, unlink, rename, mkdir, rmdir, chmod, chown
+        full_audit:success = write, unlink, rename, mkdir, rmdir, chmod, chown
+
+	#Usando a opção "full_audit:prefix".
+        #Aqui podemos utilizar algumas variáveis como:
+        # %u = o nome do usuário
+        # %I = o IP da máquina
+        # %S = o nome do compartilhamento onde foi feito o acesso ou a alteração
+        full_audit:prefix = %u|%I|%S
+
+        #Por padrão, o módulo loga não apenas os acessos e modificações, mas também um grande volume de mensagens de alerta e erros gerados durante a operação.$
+        full_audit:failure = none
+
+        #Especificamos o nível dos alertas, entre os suportados pelo syslog
+        full_audit:facility = local3
+        full_audit:priority = notice
+
+        ##################################################
+        ##################################################
+        ##################################################
+        ##################################################
+        ########                                  ########
+        ########       D I R E T O R I O S        ########
+        ########                                  ########
+        ##################################################
+        ##################################################
+        ##################################################
+        ##################################################
+
+
+[netlogon]
+	path = /opt/samba/var/locks/sysvol/engeform.matriz/scripts
+	read only = No
+
+[sysvol]
+	path = /opt/samba/var/locks/sysvol
+	read only = No
+
+[ACESSOS]
+        path = /dados/pastas/%U
+        read only = No
+        browseable = No
+
+[ACESSOSCONF]
+        path = /dados/pastas
+        read only = No
+        browseable = No
+
+[logs]
+        path = /dados/log/
+        read only = yes
+        browseable = No
+
+[ConfAcessos]
+        path = /dados/1atalhos_padroes/
+        read only = No
+        browseable = No
+
+[ConfLixeira]
+        path = /dados/lixeira/
+        read only = No
+        browseable = No
+
+[lixeira]
+        path = /dados/lixeira/%U
+        read only = No
+	browseable = No
+

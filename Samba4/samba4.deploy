@@ -1,0 +1,248 @@
+#!/bin/bash
+
+#Instalação do Samba4 no Debian 8.10
+
+#varInterfaces=/etc/network/interfaces
+#Arquivos que precisam ser alterados
+varOriginais=('/etc/fstab' '/etc/network/interfaces' '/etc/resolv.conf' '/etc/hosts' '/etc/hostname' '/etc/profile' '/etc/ssh/sshd_config' '/etc/security/limits.conf' '/etc/krb5.conf' '/etc/ntp')
+#Instalando programas essenciais
+
+function exibeTitulo(){ ##Ajusta o Titulo para que o mesmo fique centralizado
+	tput clear
+	let coluna=`tput cols`/2
+	linha=2
+	tput clear
+	titulo=$1
+	let vlrTitulo=${#titulo}
+	for i in $(eval echo "{1..$vlrTitulo}"); do
+		sublinhado+="#"
+	done
+	let coluna=coluna-vlrTitulo/2
+	tput cup $linha $coluna
+	echo ${Green}$titulo ${ResetColor}
+	linha=3
+	tput cup $linha $coluna
+	echo $sublinhado
+	sublinhado=""
+}
+
+function InstalaEssenciais(){
+	echo "Atualizando Repositórios"
+	sleep 1
+	apt-get update 
+	echo "Instalando itens essenciais"
+	sleep 1
+	export DEBIAN_FRONTEND=noninteractive #Desta maneira qualquer interactive post-install não irá parar o processo. 
+	apt-get install -y build-essential libacl1-dev libattr1-dev libblkid-dev libreadline-dev python-dev python-dnspython gdb pkg-config libgnutls28-dev libpopt-dev libldap2-dev dnsutils libbsd-dev attr krb5-user docbook-xsl libcups2-dev acl chkconfig ntp rssh	
+	echo "Download do Samba 4.1.13"
+	wget http://ftp.samba.org/pub/samba/samba-latest.tar.gz
+	sleep 1
+	echo "Descompactando..."
+	sleep 1
+	gzip -dc samba-latest.tar.gz | tar xv
+	echo "preparando a configuração inicial do samba4"
+	sleep 1
+	cd samba-*/
+	./configure --prefix=/opt/samba --enable-debug --enable-selftest
+	echo "Iniciarei o processo mais lento de toda a instalação, vamos montar os pacotes"
+	sleep 3
+	make
+	make install
+}
+
+
+function Ajustefstab(){ #Alteração do sistema de montagem do disco no / e posteriormente para as novas unidades
+	echo "Alterando os registros para o / assim que o sistema é iniciado"
+	sleep 2
+	sed -i "s/errors=remount-ro 0/user_xattr,acl,barrier=1 \t1/" /etc/fstab
+}
+
+function AjustesIniciais(){ #Inclusão de IP fixo para o servidor
+	#Captação de dados
+	exibeTitulo "Configuração dos endereços de IP para o servidor" 
+	tput cup 5 2
+	echo -e "Digite o nome do servidor (hostname) ex.: servidor : \c"
+	tput cup 6 2
+	echo -e "Este servidor será: 1.) Controlador de Domínio ou 2.) Membro de um Domínio : \c"
+	tput cup 7 2
+	echo -e "Crie uma senha forte para o usuário Administrator do Samba4 : \c"
+	tput cup 8 2
+	echo -e "Por favor digite o nome do domínio FQDN ex. EMPRESA.MATRIZ : \c"
+	tput cup 9 2
+	echo -e "Digite o endereço de IP para o servidor. ex.: 192.168.253.12 : \c"
+	tput cup 10 2
+	echo -e "Escolha a Mascara de rede desejada. 1.) 255.255.0.0 ou 2.)255.255.255.0 : \c"
+	tput cup 11 2
+	echo -e "Digite o Gateway da rede. ex.: 192.168.253.1 : \c"
+	
+	
+	##Captação de Dados##
+	tput cup 5 2
+	echo -e "Digite o nome do servidor (hostname) ex.: servidor : \c"
+	read R_Host
+	tput cup 6 2
+	echo -e "Este servidor será: 1.) Controlador de Domínio ou 2.) Membro de um Domínio : \c"
+	read R_TipoSRV
+	if [ $R_TipoSRV = 1 ];then
+		R_TipoSRV="dc"		
+	else
+		R_TipoSRV="member"
+	fi
+	tput cup 7 2
+	echo -e "Crie uma senha forte para o usuário Administrator do Samba4 : \c"
+	read R_Passwd
+	tput cup 8 2
+	echo -e "Por favor digite o nome do domínio FQDN ex. EMPRESA.MATRIZ : \c"
+	read R_FQDN
+	tput cup 9 2
+	echo -e "Digite o endereço de IP para o servidor. ex.: 192.168.253.12 : \c"
+	read R_IP
+	tput cup 10 2
+	echo -e "Escolha a Mascara de rede desejada. 1.) 255.255.0.0 ou 2.)255.255.255.0 : \c"
+	read R_Mask
+	if [ $R_Mask = 1 ];then
+		R_Mask=255.255.0.0
+		varRecorte=$(echo $R_IP | cut -d. -f3,4)
+		R_Broad=$(echo $R_IP | sed -n "s/$varRecorte$/255.255/p")
+		R_Network=$(echo $R_IP | sed -n "s/$varRecorte$/0.0/p")
+		
+	else
+		R_Mask=255.255.255.0
+		varRecorte=$(echo $R_IP | cut -d. -f4)
+		R_Broad=$(echo $R_IP | sed -n "s/$varRecorte$/255/p")
+		R_Network=$(echo $R_IP | sed -n "s/$varRecorte$/0/p")
+	fi
+	tput cup 11 2
+	echo -e "Digite o Gateway da rede. ex.: 192.168.253.1 : \c"
+	read R_Gat
+	
+	#Instalando Pre-Requisitos
+	InstalaEssenciais
+	
+	
+	echo "Alterando o arquivo interfaces"
+	sleep 2
+	sed -i "s/iface eth0/auto eth0\n&/ ; s/dhcp/static\n\taddress $R_IP\n\tnetmask $R_Mask\n\tgateway $R_Gat\n\tnetwork $R_Network\n\tbroadcast $R_Broad\n\tdns-nameserver $R_IP\n\tdns-search $R_FQDN/" /etc/network/interfaces
+	
+	echo "Alterando o arquivo hostname (o nome da maquina)"
+	sleep 2
+	echo $R_Host > /etc/hostname
+	
+	echo "Ajustando o resolv.conf" 
+	sleep 2
+	echo "domain $R_FQDN" > /etc/resolv.conf
+	echo "search $R_FQDN" > /etc/resolv.conf
+	echo "nameserver $R_IP" > /etc/resolv.conf
+	
+	echo "Ajustes no hosts"
+	sleep 2
+	sed -i "s/$HOSTNAME/$R_Host/;s/localhost/&\n127.0.0.1\t$R_Host\t$R_Host.$R_FQDN\n$R_IP\t$R_Host\t$R_Host.$R_FQDN/" /etc/hosts
+	hostname $R_Host
+	echo "Inclusão dos dados no profile"
+	sleep 2
+	echo 'PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/opt/samba/bin:/opt/samba/sbin"' >> /etc/profile
+	PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/opt/samba/bin:/opt/samba/sbin"
+	
+	echo "Ajustes no RSSH"
+	sleep 2
+	sed -i "s/^Port 22/Port 3851/;s/^PermitRootLogin/#&/" /etc/ssh/sshd_config
+	/etc/init.d/ssh restart
+	echo "Ajustes no Limits.conf"
+	sleep 2
+	echo	"root hard nofile 131072" >> /etc/security/limits.conf
+	echo	"root soft nofile 65536" >> /etc/security/limits.conf
+	echo 	"mioutente hard nofile 32768" >> /etc/security/limits.conf
+	echo 	"mioutente soft nofile 16384" >> /etc/security/limits.conf
+		
+	echo "Ajustes no krb5.conf"
+	cp /etc/krb5.conf /etc/krb5.conf.ORIGINAL
+	rm /etc/krb5.conf
+	cp /opt/samba/share/setup/krb5.conf /etc/
+	C_FQDN=$(echo $R_FQDN | tr '[:lower:]' '[:upper:]') #Colocando o domínio em UpperCase
+	sed -i "s/\${REALM}/$C_FQDN/" /etc/krb5.conf
+	#clear
+	echo "Seu sistema está pronto para ser provisionado"
+	echo "Inicio do Provisionamento e Testes"
+	sleep 3
+	#samba-tool domain provision --use-rfc2307 --interactive
+	R_Domain=$(echo $R_FQDN | cut -d. -f1)
+	samba-tool domain provision --use-rfc2307 --realm=$R_FQDN --server-role=$R_TipoSRV --dns-backend=SAMBA_INTERNAL --domain=$R_Domain --adminpass=$R_Passwd
+	
+	
+	
+}
+
+function configuraSMB(){
+	#Pre requisitos para funcionar corretamente é criar um /dados para os arquivos,
+	#Gostaria de criar antes uma conexao vpn com a kingit, deixando a instalação interligada com o laboratório.
+	#Pastas necessárias
+	mkdir -p /dados/lixeira
+	mkdir -p /dados/pastas
+	mkdir -p /dados/log
+	mkdir -p /dados/1atalhos_padroes
+	
+	
+	
+	#LOG do samba
+	echo "local3.notice /dados/log/samba-full_audit.log" >> /etc/rsyslog.conf
+	sed -i "8r smb.txt" /opt/samba/etc/smb.conf
+}
+
+
+
+function ColetaDados(){
+#Pegar os dados para instalar o Samba4
+
+clear
+echo "Por favor digite o nome do servidor"
+echo ""
+read R_Dados[0]
+clear
+echo "Por favor digite o ip deste servidor"
+echo ""
+read R_Dados[1]
+clear
+echo "Por favor digite a mascara"
+echo ""
+read R_Dados[2]
+clear
+echo "Por favor digite o gateway"
+echo ""
+read R_Dados[3]
+clear
+echo "Por favor digite o nome do domínio FQDN ex. EMPRESA.MATRIZ"
+echo ""
+read R_Dados[4]
+
+}
+
+function ConfereDados(){
+	clear
+	echo "Confirme se os dados estão digitados corretamente:"
+	echo ""
+	echo "Nome do Servidor: ${R_Dados[0]}"
+	echo "IP: ${R_Dados[1]}"
+	echo "Mascara: ${R_Dados[2]}"
+	echo "Gateway: ${R_Dados[3]}"
+	echo "Domínio: ${R_Dados[4]}"
+	echo ""
+	echo "Os dados estão corretos?"
+	echo "s/n"
+	read R_Confirma
+	if [ $R_Confirma = "s" ] || [ $R_Confirma = "sim" ]; then
+	echo "tudo certo"
+	sleep 30
+		IpFixo2
+		AlteraNomeServer
+		ConfiguraHosts
+	else
+		clear
+		echo "Voltando para o Menu Principal"
+		read -p "pressione [Enter] para continuar"
+		ColetaDados
+	fi
+}
+
+#InstalaEssenciais
+AjustesIniciais
+Ajustefstab
