@@ -8,7 +8,6 @@ varMSQLCT='mysql -urafael -h10.0.99.76 -pM21p04 -Ddev_backups -e' #Mostra a grad
 #É necessário instalar a chave publica no arquivo ~/.ssh/authorized_keys da Origem
 varChave="$HOME/.ssh/chaveprivada"
 
-
 function exibeTitulo(){ ##Ajusta o Titulo para que o mesmo fique centralizado
 	tput clear
 	let coluna=`tput cols`/2
@@ -26,6 +25,20 @@ function exibeTitulo(){ ##Ajusta o Titulo para que o mesmo fique centralizado
 	tput cup $linha $coluna
 	echo $sublinhado
 	sublinhado=""
+}
+
+function VerificaRequisitos(){
+	##Necessário verificar alguns pontos: Mysql Server - DataBase - Tabelas - Chaves de Acesso Direto
+	##Verificando o MySql Server
+	exibeTitulo "Verificação de Requisitos de Sistema"
+	tput cup 5 2
+	echo "Preciso fazer algumas perguntas antes de prosseguir"
+	tput cup 7 2
+	echo -e "Já existe algum servidor de banco de dados com o MySQL instalado? S/N : \c"
+	
+	echo -e "Por favor informe o IP do servidor MySql : /c"
+	
+	
 }
 
 function CadOrigens(){
