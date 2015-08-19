@@ -7,6 +7,29 @@
 varOriginais=('/etc/fstab' '/etc/network/interfaces' '/etc/resolv.conf' '/etc/hosts' '/etc/hostname' '/etc/profile' '/etc/ssh/sshd_config' '/etc/security/limits.conf' '/etc/krb5.conf' '/etc/ntp')
 #Instalando programas essenciais
 
+#### Inicialização das variáveis ####  
+
+#+ Modo normal  
+ResetColor="$(tput sgr0)"  
+# "Sublinhado" (bold)  
+bold=$(tput smso)  
+# "Non-Sublinhado" (offbold)  
+offbold=$(tput rmso)  
+
+# Cores (gras)  
+#+ Vermelho  
+Red="$(tput bold ; tput setaf 1)"  
+#+ Verde  
+Green="$(tput bold ; tput setaf 2)"  
+#+ Amarelo  
+Yellow="$(tput bold ; tput setaf 3)"  
+#+ Azul  
+Blue="$(tput bold ; tput setaf 4)"  
+#+ Cyan  
+BlueCyan="$(tput bold ; tput setaf 6)"  
+
+#### Fim da inicialização variáveis ####  
+
 function exibeTitulo(){ ##Ajusta o Titulo para que o mesmo fique centralizado
 	tput clear
 	let coluna=`tput cols`/2
@@ -27,32 +50,31 @@ function exibeTitulo(){ ##Ajusta o Titulo para que o mesmo fique centralizado
 }
 
 function InstalaEssenciais(){
-	echo "Atualizando Repositórios"
+	echo ${Green}"Atualizando Repositórios"${ResetColor}
 	sleep 1
 	apt-get update 
-	echo "Instalando itens essenciais"
-	sleep 1
+	echo ${Green}"Instalando itens essenciais"${ResetColor}
+	sleep 1	
 	export DEBIAN_FRONTEND=noninteractive #Desta maneira qualquer interactive post-install não irá parar o processo. 
 	apt-get install -y build-essential libacl1-dev libattr1-dev libblkid-dev libreadline-dev python-dev python-dnspython gdb pkg-config libgnutls28-dev libpopt-dev libldap2-dev dnsutils libbsd-dev attr krb5-user docbook-xsl libcups2-dev acl chkconfig ntp rssh	
-	echo "Download do Samba 4.1.13"
-	wget http://ftp.samba.org/pub/samba/samba-latest.tar.gz
+	echo ${Green}"Alterando o Time/Zone para Sao Paulo"${ResetColor}
+	echo "America/Sao_Paulo" 
+	dpkg-reconfigure -f noninteractive tzdata
+	echo ${Green}"Download do Samba 4.2.3"${ResetColor}
+	wget http://ftp.samba.org/pub/samba/samba-4.2.3.tar.gz
 	sleep 1
-	echo "Descompactando..."
+	echo ${Green}"Download do Arquivo samba para configuracao da lixeira e auditoria"${ResetColor}
+	wget "https://gist.githubusercontent.com/helladarion/8a537d8f9b17ed9014da/raw/243b135a03067e99fb82bee8bf8197c6b40c03bc/smbauditrecycle"
+	echo ${Green}"Download do Arquivo home.sh"${ResetColor}
+	wget "https://gist.githubusercontent.com/helladarion/1e0614ea0b6c691fcbb2/raw/21bde0d5008a37e41067848554a5d20cef204249/home.sh"
+	echo ${Green}"Descompactando..."${ResetColor}
 	sleep 1
-	gzip -dc samba-latest.tar.gz | tar xv
-	echo "preparando a configuração inicial do samba4"
-	sleep 1
-	cd samba-*/
-	./configure --prefix=/opt/samba --enable-debug --enable-selftest
-	echo "Iniciarei o processo mais lento de toda a instalação, vamos montar os pacotes"
-	sleep 3
-	make
-	make install
+	gzip -dc samba-4.2.3.tar.gz | tar xv
 }
 
 
 function Ajustefstab(){ #Alteração do sistema de montagem do disco no / e posteriormente para as novas unidades
-	echo "Alterando os registros para o / assim que o sistema é iniciado"
+	echo ${Green}"Alterando os registros para o / assim que o sistema é iniciado"${ResetColor}
 	sleep 2
 	sed -i "s/errors=remount-ro 0/user_xattr,acl,barrier=1 \t1/" /etc/fstab
 }
@@ -119,56 +141,68 @@ function AjustesIniciais(){ #Inclusão de IP fixo para o servidor
 	#Instalando Pre-Requisitos
 	InstalaEssenciais
 	
-	
-	echo "Alterando o arquivo interfaces"
+	echo ${Green}"Alterando o arquivo interfaces"${ResetColor}
 	sleep 2
 	sed -i "s/iface eth0/auto eth0\n&/ ; s/dhcp/static\n\taddress $R_IP\n\tnetmask $R_Mask\n\tgateway $R_Gat\n\tnetwork $R_Network\n\tbroadcast $R_Broad\n\tdns-nameserver $R_IP\n\tdns-search $R_FQDN/" /etc/network/interfaces
+	/etc/init.d/networking restart
 	
-	echo "Alterando o arquivo hostname (o nome da maquina)"
+	echo ${Green}"Alterando o arquivo hostname (o nome da maquina)"${ResetColor}
 	sleep 2
 	echo $R_Host > /etc/hostname
+	hostname $R_Host #Seta o nome da maquina sem reiniciar
 	
-	echo "Ajustando o resolv.conf" 
+	echo ${Green}"Ajustando o resolv.conf" ${ResetColor}
 	sleep 2
 	echo "domain $R_FQDN" > /etc/resolv.conf
-	echo "search $R_FQDN" > /etc/resolv.conf
-	echo "nameserver $R_IP" > /etc/resolv.conf
+	echo "search $R_FQDN" >> /etc/resolv.conf
+	echo "nameserver $R_IP" >> /etc/resolv.conf
 	
-	echo "Ajustes no hosts"
+	echo ${Green}"Ajustes no hosts"${ResetColor}
 	sleep 2
 	sed -i "s/$HOSTNAME/$R_Host/;s/localhost/&\n127.0.0.1\t$R_Host\t$R_Host.$R_FQDN\n$R_IP\t$R_Host\t$R_Host.$R_FQDN/" /etc/hosts
-	hostname $R_Host
-	echo "Inclusão dos dados no profile"
+	
+	echo ${Green}"Inclusão dos dados no profile"${ResetColor}
 	sleep 2
 	echo 'PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/opt/samba/bin:/opt/samba/sbin"' >> /etc/profile
-	PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/opt/samba/bin:/opt/samba/sbin"
+	sleep 5
+	export PATH=$PATH:/opt/samba/bin:/opt/samba/sbin
 	
-	echo "Ajustes no RSSH"
+	echo ${Green}"Ajustes no RSSH"${ResetColor}
 	sleep 2
 	sed -i "s/^Port 22/Port 3851/;s/^PermitRootLogin/#&/" /etc/ssh/sshd_config
 	/etc/init.d/ssh restart
-	echo "Ajustes no Limits.conf"
+	echo ${Green}"Ajustes no Limits.conf"${ResetColor}
 	sleep 2
 	echo	"root hard nofile 131072" >> /etc/security/limits.conf
 	echo	"root soft nofile 65536" >> /etc/security/limits.conf
 	echo 	"mioutente hard nofile 32768" >> /etc/security/limits.conf
 	echo 	"mioutente soft nofile 16384" >> /etc/security/limits.conf
+	
+	echo ${Green}"preparando a configuração inicial do samba4"${ResetColor}
+	sleep 1
+	cd samba-4.2.3/
+	./configure --prefix=/opt/samba --enable-debug --enable-selftest
+	echo ${Green}"Iniciarei o processo mais lento de toda a instalação, vamos montar os pacotes"${ResetColor}
+	sleep 3
+	make
+	make install
 		
-	echo "Ajustes no krb5.conf"
+	echo ${Green}"Ajustes no krb5.conf"${ResetColor}
 	cp /etc/krb5.conf /etc/krb5.conf.ORIGINAL
 	rm /etc/krb5.conf
 	cp /opt/samba/share/setup/krb5.conf /etc/
 	C_FQDN=$(echo $R_FQDN | tr '[:lower:]' '[:upper:]') #Colocando o domínio em UpperCase
 	sed -i "s/\${REALM}/$C_FQDN/" /etc/krb5.conf
 	#clear
-	echo "Seu sistema está pronto para ser provisionado"
-	echo "Inicio do Provisionamento e Testes"
+	echo ${Green}"Seu sistema está pronto para ser provisionado"${ResetColor}
+	echo ${Green}"Inicio do Provisionamento e Testes"${ResetColor}
 	sleep 3
 	#samba-tool domain provision --use-rfc2307 --interactive
 	R_Domain=$(echo $R_FQDN | cut -d. -f1)
 	samba-tool domain provision --use-rfc2307 --realm=$R_FQDN --server-role=$R_TipoSRV --dns-backend=SAMBA_INTERNAL --domain=$R_Domain --adminpass=$R_Passwd
 	
-	
+	echo ${Green}"Ajustando o Forwarder do samba"${ResetColor}
+	sed -i "s/forwarder =.*/forwarder = $R_Gat/" /opt/samba/etc/smb.conf
 	
 }
 
@@ -176,73 +210,43 @@ function configuraSMB(){
 	#Pre requisitos para funcionar corretamente é criar um /dados para os arquivos,
 	#Gostaria de criar antes uma conexao vpn com a kingit, deixando a instalação interligada com o laboratório.
 	#Pastas necessárias
-	mkdir -p /dados/lixeira
-	mkdir -p /dados/pastas
-	mkdir -p /dados/log
-	mkdir -p /dados/1atalhos_padroes
-	
-	
+	mkdir -p /kit/lixeira
+	mkdir -p /kit/pastas
+	mkdir -p /kit/log
+	mkdir -p /kit/atalhos_padroes
+	mkdir -p /dados/
 	
 	#LOG do samba
-	echo "local3.notice /dados/log/samba-full_audit.log" >> /etc/rsyslog.conf
-	sed -i "8r smb.txt" /opt/samba/etc/smb.conf
+	echo "local3.notice /kit/log/samba-full_audit.log" >> /etc/rsyslog.conf
+	sleep 3
+	echo ${Green}"Inclusão da base de configuracao do smb.conf na configuracao basica"${ResetColor}
+	sed -i "8r /root/smbauditrecycle" /opt/samba/etc/smb.conf
+	sleep 10
+	echo ${Green}"Subindo Serviço do Samba"${ResetColor}
+	/opt/samba/sbin/samba
+	echo ${Green}"Incluindo inicializacao automatica"${ResetColor}
+	sed -i "s_^exit 0_/opt/samba/sbin/samba\n\n&_" /etc/rc.local
+	
+	
 }
 
-
-
-function ColetaDados(){
-#Pegar os dados para instalar o Samba4
-
-clear
-echo "Por favor digite o nome do servidor"
-echo ""
-read R_Dados[0]
-clear
-echo "Por favor digite o ip deste servidor"
-echo ""
-read R_Dados[1]
-clear
-echo "Por favor digite a mascara"
-echo ""
-read R_Dados[2]
-clear
-echo "Por favor digite o gateway"
-echo ""
-read R_Dados[3]
-clear
-echo "Por favor digite o nome do domínio FQDN ex. EMPRESA.MATRIZ"
-echo ""
-read R_Dados[4]
-
+function TestaServer(){
+	echo ${Green}"Efetuando teste NSLOOKUP"${ResetColor}
+	nslookup $R_FQDN
+	echo ${Green}"Logando na seção como Administrator: Digite sua senha: $R_Passwd"${ResetColor}
+	kinit administrator@$C_FQDN
+	echo ${Green}"Exibe o Ticket Recem Criado"${ResetColor}
+	klist
+	echo ${Green}"Listando o conteudo de uma pasta de rede"${ResetColor}
+	smbclient -k //$R_Host.$R_FQDN/netlogon -c 'ls'
+	echo ${Green}"Testando DNS"${ResetColor}
+	
+	host -t SRV _ldap._tcp.$R_FQDN
+	host -t SRV _kerberos._udp.$R_FQDN
+	host -t A $R_Host.$R_FQDN
 }
 
-function ConfereDados(){
-	clear
-	echo "Confirme se os dados estão digitados corretamente:"
-	echo ""
-	echo "Nome do Servidor: ${R_Dados[0]}"
-	echo "IP: ${R_Dados[1]}"
-	echo "Mascara: ${R_Dados[2]}"
-	echo "Gateway: ${R_Dados[3]}"
-	echo "Domínio: ${R_Dados[4]}"
-	echo ""
-	echo "Os dados estão corretos?"
-	echo "s/n"
-	read R_Confirma
-	if [ $R_Confirma = "s" ] || [ $R_Confirma = "sim" ]; then
-	echo "tudo certo"
-	sleep 30
-		IpFixo2
-		AlteraNomeServer
-		ConfiguraHosts
-	else
-		clear
-		echo "Voltando para o Menu Principal"
-		read -p "pressione [Enter] para continuar"
-		ColetaDados
-	fi
-}
-
-#InstalaEssenciais
 AjustesIniciais
 Ajustefstab
+configuraSMB
+TestaServer
