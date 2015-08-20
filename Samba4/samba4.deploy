@@ -1,13 +1,12 @@
 #!/bin/bash
 
-#Instalação do Samba4 no Debian 8.10
+#### Instalação do Samba4 no Debian 8.10 ####  
+: <<'DESC'
+Sistema desenvolvido para instalar complentamente um servidor DC em Samba4 no Debian 8.10 Jessie
+Este sistema não foi testado em versões mais novas e/ou anteriores, portanto não me responsabilizo por erros.
 
-#varInterfaces=/etc/network/interfaces
-#Arquivos que precisam ser alterados
-varOriginais=('/etc/fstab' '/etc/network/interfaces' '/etc/resolv.conf' '/etc/hosts' '/etc/hostname' '/etc/profile' '/etc/ssh/sshd_config' '/etc/security/limits.conf' '/etc/krb5.conf' '/etc/ntp')
-#Instalando programas essenciais
+DESC
 
-#### Inicialização das variáveis ####  
 
 #+ Modo normal  
 ResetColor="$(tput sgr0)"  
@@ -207,7 +206,7 @@ function AjustesIniciais(){ #Inclusão de IP fixo para o servidor
 }
 
 function configuraSMB(){
-	#Pre requisitos para funcionar corretamente é criar um /dados para os arquivos,
+	#Pre requisitos para funcionar corretamente é criar um /dados para os arquivos, e a pasta kit para os log e lixeira
 	#Gostaria de criar antes uma conexao vpn com a kingit, deixando a instalação interligada com o laboratório.
 	#Pastas necessárias
 	mkdir -p /kit/lixeira
@@ -234,7 +233,7 @@ function TestaServer(){
 	echo ${Green}"Efetuando teste NSLOOKUP"${ResetColor}
 	nslookup $R_FQDN
 	echo ${Green}"Logando na seção como Administrator: Digite sua senha: $R_Passwd"${ResetColor}
-	kinit administrator@$C_FQDN
+	echo $R_Passwd | kinit administrator@$C_FQDN
 	echo ${Green}"Exibe o Ticket Recem Criado"${ResetColor}
 	klist
 	echo ${Green}"Listando o conteudo de uma pasta de rede"${ResetColor}
