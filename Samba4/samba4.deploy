@@ -1,248 +1,445 @@
 #!/bin/bash
+##################################################
+# Name: samba4.deploy
+# Description: Deploy of Samba4 on Linux Debian Jessie 8.10
+# Script Maintainer: Rafael
+#
+# Versão: 1.0
+# Last Updated: August 25th 2015
+##################################################
+###### Instalação do Samba4 no Debian 8.10 ####### 
+# 
+: <<'DESC'
+Sistema desenvolvido para instalar complentamente um servidor DC em Samba4 no Debian 8.10 Jessie
+Este sistema não foi testado em versões mais novas e/ou anteriores, portanto não me responsabilizo por erros.
 
-#Instalação do Samba4 no Debian 8.10
+No encurtador de links utilize o seguinte comando para baixar o código wget goo.gl/Sm1hlX -O samba4deploy.sh
+Dê permissão de execução com chmod +x samba4deploy.sh e siga os passos da instalação.
 
-#varInterfaces=/etc/network/interfaces
-#Arquivos que precisam ser alterados
-varOriginais=('/etc/fstab' '/etc/network/interfaces' '/etc/resolv.conf' '/etc/hosts' '/etc/hostname' '/etc/profile' '/etc/ssh/sshd_config' '/etc/security/limits.conf' '/etc/krb5.conf' '/etc/ntp')
-#Instalando programas essenciais
+Instalação do Debian 8.10
+Particionamento Necessário:
+/ - 15Gb
+/kit - 50Gb
+/dados - 1Tera ou mais
 
-function exibeTitulo(){ ##Ajusta o Titulo para que o mesmo fique centralizado
-	tput clear
-	let coluna=`tput cols`/2
-	linha=2
-	tput clear
-	titulo=$1
-	let vlrTitulo=${#titulo}
-	for i in $(eval echo "{1..$vlrTitulo}"); do
-		sublinhado+="#"
-	done
-	let coluna=coluna-vlrTitulo/2
-	tput cup $linha $coluna
-	echo ${Green}$titulo ${ResetColor}
-	linha=3
-	tput cup $linha $coluna
-	echo $sublinhado
-	sublinhado=""
-}
+no fstab ficará assim:
+/dev/xvdx	/kit	ext4	user_xattr,acl,barrier=1	1
+/dev/xvdy	/dados	ext4	user_xattr,acl,barrier=1	1
+DESC
+
+
+##################################################
+#Include source file with text functions
+#
+echo "Verificando Dependêcias"
+echo ""
+sleep 2
+if [ ! -f textfuncs.fnc ]; then
+echo "Baixando arquivo de configuração"
+echo ""
+sleep 2
+wget goo.gl/klNlVy -O textfuncs.fnc
+fi
+sleep 3
+source textfuncs.fnc
+##################################################
+#Descricao do sistema e Observações Importantes
+#
+CenterTitle "Samba4Deploy Criação de Servidores Linux"
+Colorize 6 "
+
+	Olá, 
+	Você esta prestes a iniciar o sistema de deploy e compilação 
+	automatizado de servidores Linux Kingit, neste sistema você 
+	poderá criar e linkar servidores de sua matriz e filiais,
+	criando um sistema poderoso e confiável de redundância.
+	
+	O que estamos automatizando?
+	- Update dos Repositórios
+	- Download dos Pré-Requisitos
+	- Download da Versão 4.2.3 do Samba4
+	- Configuração conforme dados recolhidos
+	- Criação de estrutura de Pastas
+	- Configuração de Lixeira e Auditoria
+	- Testes e Report de Resumo
+	
+"
+Colorize 1 "	Sistema Homologado apenas para Linux Debian Jessie 8.10"
+echo "
+"
+read -p "   Pressione [Enter] Para iniciar a Instalação, ou Crtl+C para Cancelar"
 
 function InstalaEssenciais(){
-	echo "Atualizando Repositórios"
-	sleep 1
+	tput clear
+	Colorize 2 "Atualizando Repositórios"
+	echo ""
+	sleep 2
 	apt-get update 
-	echo "Instalando itens essenciais"
-	sleep 1
+	tput clear
+	Colorize 2 "Instalando itens essenciais"
+	echo ""
+	sleep 2	
 	export DEBIAN_FRONTEND=noninteractive #Desta maneira qualquer interactive post-install não irá parar o processo. 
+	##################################################
+	#Lista de itens essenciais para funcionamento do Samba 4 tanto PDC quanto BDC
+	#
 	apt-get install -y build-essential libacl1-dev libattr1-dev libblkid-dev libreadline-dev python-dev python-dnspython gdb pkg-config libgnutls28-dev libpopt-dev libldap2-dev dnsutils libbsd-dev attr krb5-user docbook-xsl libcups2-dev acl chkconfig ntp rssh	
-	echo "Download do Samba 4.1.13"
-	wget http://ftp.samba.org/pub/samba/samba-latest.tar.gz
-	sleep 1
-	echo "Descompactando..."
-	sleep 1
-	gzip -dc samba-latest.tar.gz | tar xv
-	echo "preparando a configuração inicial do samba4"
-	sleep 1
-	cd samba-*/
-	./configure --prefix=/opt/samba --enable-debug --enable-selftest
-	echo "Iniciarei o processo mais lento de toda a instalação, vamos montar os pacotes"
-	sleep 3
-	make
-	make install
+	tput clear
+	Colorize 2 "Alterando o Time/Zone para Sao Paulo"
+	echo ""
+	sleep 2
+	echo "America/Sao_Paulo" > /etc/timezone
+	dpkg-reconfigure -f noninteractive tzdata
+	tput clear
+	Colorize 2 "Download do Samba 4.2.3"
+	echo ""
+	sleep 2
+	wget http://ftp.samba.org/pub/samba/samba-4.2.3.tar.gz
+	sleep 2
+	tput clear
+	Colorize 2 "Download do Arquivo samba para configuracao da lixeira e auditoria"
+	echo ""
+	sleep 2
+	wget "https://gist.githubusercontent.com/helladarion/8a537d8f9b17ed9014da/raw/243b135a03067e99fb82bee8bf8197c6b40c03bc/smbauditrecycle"
+	tput clear
+	Colorize 2 "Download do Arquivo home.sh"
+	echo ""
+	sleep 2
+	wget "https://gist.githubusercontent.com/helladarion/1e0614ea0b6c691fcbb2/raw/21bde0d5008a37e41067848554a5d20cef204249/home.sh"
+	tput clear
+	Colorize 2 "Descompactando..."
+	echo ""
+	sleep 2
+	gzip -dc samba-4.2.3.tar.gz | tar xv
 }
 
-
 function Ajustefstab(){ #Alteração do sistema de montagem do disco no / e posteriormente para as novas unidades
-	echo "Alterando os registros para o / assim que o sistema é iniciado"
+	Colorize 2 "Alterando os registros para o / assim que o sistema é iniciado"
+	echo ""
 	sleep 2
 	sed -i "s/errors=remount-ro 0/user_xattr,acl,barrier=1 \t1/" /etc/fstab
 }
 
-function AjustesIniciais(){ #Inclusão de IP fixo para o servidor
-	#Captação de dados
-	exibeTitulo "Configuração dos endereços de IP para o servidor" 
+function ProvisionamentoPDC(){
+	Colorize 2 "Inicio do Provisionamento de PDC"
+	echo ""
+	sleep 2
+	R_Domain=$(echo $R_FQDN | cut -d. -f1)
+	samba-tool domain provision --use-rfc2307 --realm=$R_FQDN --server-role=dc --dns-backend=SAMBA_INTERNAL --domain=$R_Domain --adminpass=$R_Passwd
+	sleep 2
+	Colorize 2 "Ajustando o Forwarder do samba"
+	echo ""
+	sleep 2
+	sed -i "s/forwarder =.*/forwarder = $R_DNS/" /opt/samba/etc/smb.conf
+}
+
+function ProvisionamentoBDC(){
+	Colorize 2 "Inicio do Provisionamento BDC"
+	sleep 3
+	
+	#Para que o provisionamento com BDC funcione os dados de resolv.conf e interfaces devem estar apontando para o dns do servidor mãe
+	
+	#samba-tool domain provision --use-rfc2307 --interactive
+	#R_Domain=$(echo $R_FQDN | cut -d. -f1)
+	#samba-tool domain provision --use-rfc2307 --realm=$R_FQDN --server-role=$R_TipoSRV --dns-backend=SAMBA_INTERNAL --domain=$R_Domain --adminpass=$R_Passwd
+	samba-tool domain join $R_Domain DC -Uadministrator --realm=$R_Domain --dns-backend=SAMBA_INTERNAL
+	#echo ${Green}"Ajustando o Forwarder do samba"${ResetColor}
+	#sed -i "s/forwarder =.*/forwarder = $R_Gat/" /opt/samba/etc/smb.conf
+}
+
+function PDC () {
+	##################################################
+	#Levantamento de dados Iniciais, exibição
+	#
+	CenterTitle "Configurações iniciais para o servidor PDC" 
 	tput cup 5 2
-	echo -e "Digite o nome do servidor (hostname) ex.: servidor : \c"
+	Colorize 6 "Digite o nome do servidor (hostname) ex.: servidor : "
 	tput cup 6 2
-	echo -e "Este servidor será: 1.) Controlador de Domínio ou 2.) Membro de um Domínio : \c"
+	Colorize 6 "Crie uma senha forte para o usuário Administrator do Samba4 : "
 	tput cup 7 2
-	echo -e "Crie uma senha forte para o usuário Administrator do Samba4 : \c"
+	Colorize 6 "Por favor digite o nome do domínio FQDN ex. empresa.matriz : "
 	tput cup 8 2
-	echo -e "Por favor digite o nome do domínio FQDN ex. EMPRESA.MATRIZ : \c"
+	Colorize 6 "Digite o endereço de IP para o servidor. ex.: 192.168.253.12 : "
 	tput cup 9 2
-	echo -e "Digite o endereço de IP para o servidor. ex.: 192.168.253.12 : \c"
+	Colorize 6 "Escolha a Mascara de rede desejada: 1.) 255.255.0.0 ou 2.)255.255.255.0 : "
 	tput cup 10 2
-	echo -e "Escolha a Mascara de rede desejada. 1.) 255.255.0.0 ou 2.)255.255.255.0 : \c"
+	Colorize 6 "Digite o Gateway da rede. ex.: 192.168.253.1 : "
 	tput cup 11 2
-	echo -e "Digite o Gateway da rede. ex.: 192.168.253.1 : \c"
-	
-	
+	Colorize 6 "Qual DNS deseja: 1.) Google , 2.) OpenDNS ou 3.) Gateway : "
+	##################################################
 	##Captação de Dados##
+	#
 	tput cup 5 2
-	echo -e "Digite o nome do servidor (hostname) ex.: servidor : \c"
+	Colorize 6 "Digite o nome do servidor (hostname) ex.: servidor : "
 	read R_Host
 	tput cup 6 2
-	echo -e "Este servidor será: 1.) Controlador de Domínio ou 2.) Membro de um Domínio : \c"
-	read R_TipoSRV
-	if [ $R_TipoSRV = 1 ];then
-		R_TipoSRV="dc"		
-	else
-		R_TipoSRV="member"
-	fi
-	tput cup 7 2
-	echo -e "Crie uma senha forte para o usuário Administrator do Samba4 : \c"
+	Colorize 6 "Crie uma senha forte para o usuário Administrator do Samba4 : "
 	read R_Passwd
-	tput cup 8 2
-	echo -e "Por favor digite o nome do domínio FQDN ex. EMPRESA.MATRIZ : \c"
+	tput cup 7 2
+	Colorize 6 "Por favor digite o nome do domínio FQDN ex. empresa.matriz : "
 	read R_FQDN
-	tput cup 9 2
-	echo -e "Digite o endereço de IP para o servidor. ex.: 192.168.253.12 : \c"
+	##################################################
+	#Ajustando FQDN para ficar minusculo
+	#
+	R_FQDN=$(echo $R_FQDN | tr '[:upper:]' '[:lower:]')
+	
+	tput cup 8 2
+	Colorize 6 "Digite o endereço de IP para o servidor. ex.: 192.168.253.12 : "
 	read R_IP
-	tput cup 10 2
-	echo -e "Escolha a Mascara de rede desejada. 1.) 255.255.0.0 ou 2.)255.255.255.0 : \c"
+	tput cup 9 2
+	Colorize 6 "Escolha a Mascara de rede desejada: 1.) 255.255.0.0 ou 2.)255.255.255.0 : "
 	read R_Mask
 	if [ $R_Mask = 1 ];then
 		R_Mask=255.255.0.0
 		varRecorte=$(echo $R_IP | cut -d. -f3,4)
 		R_Broad=$(echo $R_IP | sed -n "s/$varRecorte$/255.255/p")
 		R_Network=$(echo $R_IP | sed -n "s/$varRecorte$/0.0/p")
-		
 	else
 		R_Mask=255.255.255.0
 		varRecorte=$(echo $R_IP | cut -d. -f4)
 		R_Broad=$(echo $R_IP | sed -n "s/$varRecorte$/255/p")
 		R_Network=$(echo $R_IP | sed -n "s/$varRecorte$/0/p")
 	fi
-	tput cup 11 2
-	echo -e "Digite o Gateway da rede. ex.: 192.168.253.1 : \c"
+	tput cup 10 2
+	Colorize 6 "Digite o Gateway da rede. ex.: 192.168.253.1 : "
 	read R_Gat
+	tput cup 11 2
+	Colorize 6 "Qual DNS deseja: 1.) Google , 2.) OpenDNS ou 3.) Gateway : "
+	read R_DNS
+	if [ $R_DNS = 1 ];then
+		R_DNS=8.8.8.8
+	elif [ $R_DNS = 2 ];then
+		R_DNS=208.67.222.222
+	elif [ $R_DNS = 3 ];then
+		R_DNS=$R_Gat
+	else
+		tput 13 2
+		Colorize 1 "Opção DNS digitada inexistente, usarei o Gateway"
+		R_DNS=$R_Gat
+	fi
+	##################################################
+	##Conferência dos Dados
+	#
+	CenterTitle "Conferencia dos Dados"
+	echo "
+  
+  Hostname:	$R_Host
+  Senha:	$R_Passwd
+  Dominio FQDN:	$R_FQDN	
+  IP Servidor:	$R_IP
+  Mascara:	$R_Mask
+  Gateway:	$R_Gat
+  DNS:		$R_DNS
+	"
+	Colorize 4 "Confirmar (s/n): "
+	read R_OK
+	
+	if [ $R_OK = "s" ];then
+		echo "Dados Confirmados, seguindo a instalação"; sleep 3; AjustesIniciais
+		sleep 3
+		tput clear
+		ProvisionamentoPDC
+		sleep 3
+		tput clear
+		configuraSMB
+		sleep 3
+		tput clear
+		Ajustefstab
+		sleep 3
+		tput clear
+		TestaServer
+	else
+		echo "Voltando para a configuração de PDC"; sleep 3 ; PDC
+	fi
+	
+}
+function AjustaResolv () {
+	echo ""
+	Colorize 2 "Ajustando o resolv.conf"
+	echo ""
+	sleep 2
+	echo "domain $R_FQDN" > /etc/resolv.conf
+	echo "search $R_FQDN" >> /etc/resolv.conf
+	echo "nameserver $R_IP" >> /etc/resolv.conf
+}
+
+
+function AjustesIniciais(){ #Inclusão de IP fixo para o servidor
 	
 	#Instalando Pre-Requisitos
 	InstalaEssenciais
-	
-	
-	echo "Alterando o arquivo interfaces"
+	Colorize 2 "Alterando o arquivo interfaces"
+	echo ""
 	sleep 2
 	sed -i "s/iface eth0/auto eth0\n&/ ; s/dhcp/static\n\taddress $R_IP\n\tnetmask $R_Mask\n\tgateway $R_Gat\n\tnetwork $R_Network\n\tbroadcast $R_Broad\n\tdns-nameserver $R_IP\n\tdns-search $R_FQDN/" /etc/network/interfaces
-	
-	echo "Alterando o arquivo hostname (o nome da maquina)"
+	sleep 2
+	/etc/init.d/networking restart
+	Colorize 2 "Alterando o arquivo hostname (o nome da maquina)"
+	echo ""
 	sleep 2
 	echo $R_Host > /etc/hostname
-	
-	echo "Ajustando o resolv.conf" 
 	sleep 2
-	echo "domain $R_FQDN" > /etc/resolv.conf
-	echo "search $R_FQDN" > /etc/resolv.conf
-	echo "nameserver $R_IP" > /etc/resolv.conf
-	
-	echo "Ajustes no hosts"
+	hostname $R_Host #Seta o nome da maquina sem reiniciar	
+	AjustaResolv
+	Colorize 2 "Ajustes no hosts"
+	echo ""
 	sleep 2
 	sed -i "s/$HOSTNAME/$R_Host/;s/localhost/&\n127.0.0.1\t$R_Host\t$R_Host.$R_FQDN\n$R_IP\t$R_Host\t$R_Host.$R_FQDN/" /etc/hosts
-	hostname $R_Host
-	echo "Inclusão dos dados no profile"
+	Colorize 2 "Inclusão dos dados no profile"
+	echo ""
 	sleep 2
 	echo 'PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/opt/samba/bin:/opt/samba/sbin"' >> /etc/profile
-	PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/opt/samba/bin:/opt/samba/sbin"
-	
-	echo "Ajustes no RSSH"
+	sleep 3
+	export PATH=$PATH:/opt/samba/bin:/opt/samba/sbin
+	Colorize 2 "Ajustes no RSSH, alteração da porta para 3851"
+	echo ""
 	sleep 2
 	sed -i "s/^Port 22/Port 3851/;s/^PermitRootLogin/#&/" /etc/ssh/sshd_config
 	/etc/init.d/ssh restart
-	echo "Ajustes no Limits.conf"
+	Colorize 2 "Ajustes no Limits.conf"
+	echo ""
 	sleep 2
 	echo	"root hard nofile 131072" >> /etc/security/limits.conf
 	echo	"root soft nofile 65536" >> /etc/security/limits.conf
 	echo 	"mioutente hard nofile 32768" >> /etc/security/limits.conf
 	echo 	"mioutente soft nofile 16384" >> /etc/security/limits.conf
-		
-	echo "Ajustes no krb5.conf"
+	Colorize 2 "preparando a configuração inicial do samba4"
+	echo ""
+	sleep 2
+	cd samba-4.2.3/
+	sleep 2
+	./configure --prefix=/opt/samba --enable-debug --enable-selftest
+	Colorize 2 "Iniciarei o processo mais lento de toda a instalação, vamos montar os pacotes"
+	echo ""
+	sleep 3
+	make
+	make install
+	Colorize 2 "Ajustes no krb5.conf"
+	echo ""
+	sleep 2
 	cp /etc/krb5.conf /etc/krb5.conf.ORIGINAL
 	rm /etc/krb5.conf
 	cp /opt/samba/share/setup/krb5.conf /etc/
 	C_FQDN=$(echo $R_FQDN | tr '[:lower:]' '[:upper:]') #Colocando o domínio em UpperCase
 	sed -i "s/\${REALM}/$C_FQDN/" /etc/krb5.conf
-	#clear
-	echo "Seu sistema está pronto para ser provisionado"
-	echo "Inicio do Provisionamento e Testes"
+	Colorize 2 "Seu sistema está pronto para ser provisionado"
+	echo ""
 	sleep 3
-	#samba-tool domain provision --use-rfc2307 --interactive
-	R_Domain=$(echo $R_FQDN | cut -d. -f1)
-	samba-tool domain provision --use-rfc2307 --realm=$R_FQDN --server-role=$R_TipoSRV --dns-backend=SAMBA_INTERNAL --domain=$R_Domain --adminpass=$R_Passwd
-	
 	
 	
 }
 
 function configuraSMB(){
-	#Pre requisitos para funcionar corretamente é criar um /dados para os arquivos,
+	#Pre requisitos para funcionar corretamente é criar um /dados para os arquivos, e a pasta kit para os log e lixeira
 	#Gostaria de criar antes uma conexao vpn com a kingit, deixando a instalação interligada com o laboratório.
 	#Pastas necessárias
-	mkdir -p /dados/lixeira
-	mkdir -p /dados/pastas
-	mkdir -p /dados/log
-	mkdir -p /dados/1atalhos_padroes
+	Colorize 2 "  Criando estrutura de pastas seguindo o padrão Kingit"
+	echo "
 	
+	Do que estamos falando?
+	As pastas de lixeira, logs, atalhos padrões e pastas de atalhos
+	agora estão separadas dos dados dos clientes
+	/kit/lixeira
+	/kit/pastas
+	/kit/log
+	/kit/atalhos_padroes
 	
+	A Pasta de Dados conterá apenas os dados dos clientes
+	
+	/dados/
+	
+	"
+	sleep 15
+	mkdir -p /kit/lixeira
+	mkdir -p /kit/pastas
+	mkdir -p /kit/log
+	mkdir -p /kit/atalhos_padroes
+	mkdir -p /dados/
 	
 	#LOG do samba
-	echo "local3.notice /dados/log/samba-full_audit.log" >> /etc/rsyslog.conf
-	sed -i "8r smb.txt" /opt/samba/etc/smb.conf
-}
-
-
-
-function ColetaDados(){
-#Pegar os dados para instalar o Samba4
-
-clear
-echo "Por favor digite o nome do servidor"
-echo ""
-read R_Dados[0]
-clear
-echo "Por favor digite o ip deste servidor"
-echo ""
-read R_Dados[1]
-clear
-echo "Por favor digite a mascara"
-echo ""
-read R_Dados[2]
-clear
-echo "Por favor digite o gateway"
-echo ""
-read R_Dados[3]
-clear
-echo "Por favor digite o nome do domínio FQDN ex. EMPRESA.MATRIZ"
-echo ""
-read R_Dados[4]
-
-}
-
-function ConfereDados(){
-	clear
-	echo "Confirme se os dados estão digitados corretamente:"
+	Colorize 2 "Incluindo instruções para salvar o log de acessos"
 	echo ""
-	echo "Nome do Servidor: ${R_Dados[0]}"
-	echo "IP: ${R_Dados[1]}"
-	echo "Mascara: ${R_Dados[2]}"
-	echo "Gateway: ${R_Dados[3]}"
-	echo "Domínio: ${R_Dados[4]}"
+	sleep 2
+	echo "local3.notice /kit/log/samba-full_audit.log" >> /etc/rsyslog.conf
+	sleep 3
+	tput clear
+	Colorize 2 "Inclusão da base de configuracao do smb.conf na configuracao basica"
 	echo ""
-	echo "Os dados estão corretos?"
-	echo "s/n"
-	read R_Confirma
-	if [ $R_Confirma = "s" ] || [ $R_Confirma = "sim" ]; then
-	echo "tudo certo"
-	sleep 30
-		IpFixo2
-		AlteraNomeServer
-		ConfiguraHosts
-	else
-		clear
-		echo "Voltando para o Menu Principal"
-		read -p "pressione [Enter] para continuar"
-		ColetaDados
-	fi
+	sleep 3
+	sed -i "8r /root/smbauditrecycle" /opt/samba/etc/smb.conf
+	sleep 10
+	tput clear
+	Colorize 2 "Subindo Serviço do Samba"
+	echo ""
+	sleep 2
+	/opt/samba/sbin/samba
+	tput clear
+	Colorize 2 "Incluindo inicializacao automatica"
+	echo ""
+	sleep 4
+	sed -i "s_^exit 0_/opt/samba/sbin/samba\n\n&_" /etc/rc.local
+	
 }
 
-#InstalaEssenciais
-AjustesIniciais
-Ajustefstab
+function TestaServer(){
+	AjustaResolv
+	Colorize 2 "Efetuando teste NSLOOKUP"
+	echo ""
+	sleep 3
+	nslookup $R_FQDN
+	Colorize 2 "Logando na seção como Administrator. "
+	echo ""
+	sleep 3
+	echo $R_Passwd | kinit administrator@$C_FQDN
+	Colorize 2 "Exibe o Ticket Recem Criado"
+	echo ""
+	sleep 3
+	klist
+	Colorize 2 "Listando o conteudo de uma pasta de rede"
+	echo ""
+	sleep 3
+	smbclient -k //$R_Host.$R_FQDN/netlogon -c 'ls'
+	Colorize 2 "Testando DNS"
+	echo ""
+	sleep 3
+	host -t SRV _ldap._tcp.$R_FQDN
+	host -t SRV _kerberos._udp.$R_FQDN
+	host -t A $R_Host.$R_FQDN
+	sleep 10
+	
+	CenterTitle "Seu sistema foi instalado e configurado corretamente"
+	echo "
+  
+  Hostname:	$R_Host
+  Senha:	$R_Passwd
+  Dominio FQDN:	$R_FQDN	
+  IP Servidor:	$R_IP
+  Mascara:	$R_Mask
+  Gateway:	$R_Gat
+  DNS:		$R_DNS
+	"
+}
+
+function menuPrincipal () {
+	CenterTitle "Samba 4 Deploy"
+	tput cup 5 2
+	Colorize 4 "O que deseja fazer?"
+	echo "
+  1. Criar um novo servidor autonomo PDC (Primary Domain Controller).
+  2. Criar um BDC (Backup Domain Controller) de um servidor existente. 
+  9. Sair
+  
+  Qual a sua escolha:"
+	tput cup 10 21
+	read R_Mnu
+	
+	case $R_Mnu in
+		1) PDC ;;
+		2) Colorize 5 "  Funcionalidade ainda em desenvolvimento. Voltando ao Menu Principal" ; sleep 3 ; menuPrincipal ;;
+		9) echo "  Valew Falow" ; exit;;
+		*) echo "  Por favor escolha uma opção valida. Voltando para o Menu Principal."; sleep 3 ; menuPrincipal ;;
+	esac
+}
+
+menuPrincipal
+
