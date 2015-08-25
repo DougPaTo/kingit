@@ -13,7 +13,6 @@
 Sistema desenvolvido para instalar complentamente um servidor DC em Samba4 no Debian 8.10 Jessie
 Este sistema não foi testado em versões mais novas e/ou anteriores, portanto não me responsabilizo por erros.
 
-<<<<<<< HEAD
 No encurtador de links utilize o seguinte comando para baixar o código wget goo.gl/Sm1hlX -O samba4deploy.sh
 Dê permissão de execução com chmod +x samba4deploy.sh e siga os passos da instalação.
 
@@ -22,36 +21,6 @@ Particionamento Necessário:
 / - 15Gb
 /kit - 50Gb
 /dados - 1Tera ou mais
-=======
-#### Instalação do Samba4 no Debian 8.10 ####  
-: <<'DESC'
-Sistema desenvolvido para instalar complentamente um servidor DC em Samba4 no Debian 8.10 Jessie
-Este sistema não foi testado em versões mais novas e/ou anteriores, portanto não me responsabilizo por erros.
-
-DESC
-
-
-#+ Modo normal  
-ResetColor="$(tput sgr0)"  
-# "Sublinhado" (bold)  
-bold=$(tput smso)  
-# "Non-Sublinhado" (offbold)  
-offbold=$(tput rmso)  
-
-# Cores (gras)  
-#+ Vermelho  
-Red="$(tput bold ; tput setaf 1)"  
-#+ Verde  
-Green="$(tput bold ; tput setaf 2)"  
-#+ Amarelo  
-Yellow="$(tput bold ; tput setaf 3)"  
-#+ Azul  
-Blue="$(tput bold ; tput setaf 4)"  
-#+ Cyan  
-BlueCyan="$(tput bold ; tput setaf 6)"  
-
-#### Fim da inicialização variáveis ####  
->>>>>>> 32caaf0159505a31e4d13826754f348c0b9b6398
 
 no fstab ficará assim:
 /dev/xvdx	/kit	ext4	user_xattr,acl,barrier=1	1
@@ -101,7 +70,6 @@ echo "
 read -p "   Pressione [Enter] Para iniciar a Instalação, ou Crtl+C para Cancelar"
 
 function InstalaEssenciais(){
-<<<<<<< HEAD
 	tput clear
 	Colorize 2 "Atualizando Repositórios"
 	echo ""
@@ -111,19 +79,11 @@ function InstalaEssenciais(){
 	Colorize 2 "Instalando itens essenciais"
 	echo ""
 	sleep 2	
-=======
-	echo ${Green}"Atualizando Repositórios"${ResetColor}
-	sleep 1
-	apt-get update 
-	echo ${Green}"Instalando itens essenciais"${ResetColor}
-	sleep 1	
->>>>>>> 32caaf0159505a31e4d13826754f348c0b9b6398
 	export DEBIAN_FRONTEND=noninteractive #Desta maneira qualquer interactive post-install não irá parar o processo. 
 	##################################################
 	#Lista de itens essenciais para funcionamento do Samba 4 tanto PDC quanto BDC
 	#
 	apt-get install -y build-essential libacl1-dev libattr1-dev libblkid-dev libreadline-dev python-dev python-dnspython gdb pkg-config libgnutls28-dev libpopt-dev libldap2-dev dnsutils libbsd-dev attr krb5-user docbook-xsl libcups2-dev acl chkconfig ntp rssh	
-<<<<<<< HEAD
 	tput clear
 	Colorize 2 "Alterando o Time/Zone para Sao Paulo"
 	echo ""
@@ -150,30 +110,12 @@ function InstalaEssenciais(){
 	Colorize 2 "Descompactando..."
 	echo ""
 	sleep 2
-=======
-	echo ${Green}"Alterando o Time/Zone para Sao Paulo"${ResetColor}
-	echo "America/Sao_Paulo" 
-	dpkg-reconfigure -f noninteractive tzdata
-	echo ${Green}"Download do Samba 4.2.3"${ResetColor}
-	wget http://ftp.samba.org/pub/samba/samba-4.2.3.tar.gz
-	sleep 1
-	echo ${Green}"Download do Arquivo samba para configuracao da lixeira e auditoria"${ResetColor}
-	wget "https://gist.githubusercontent.com/helladarion/8a537d8f9b17ed9014da/raw/243b135a03067e99fb82bee8bf8197c6b40c03bc/smbauditrecycle"
-	echo ${Green}"Download do Arquivo home.sh"${ResetColor}
-	wget "https://gist.githubusercontent.com/helladarion/1e0614ea0b6c691fcbb2/raw/21bde0d5008a37e41067848554a5d20cef204249/home.sh"
-	echo ${Green}"Descompactando..."${ResetColor}
-	sleep 1
->>>>>>> 32caaf0159505a31e4d13826754f348c0b9b6398
 	gzip -dc samba-4.2.3.tar.gz | tar xv
 }
 
 function Ajustefstab(){ #Alteração do sistema de montagem do disco no / e posteriormente para as novas unidades
-<<<<<<< HEAD
 	Colorize 2 "Alterando os registros para o / assim que o sistema é iniciado"
 	echo ""
-=======
-	echo ${Green}"Alterando os registros para o / assim que o sistema é iniciado"${ResetColor}
->>>>>>> 32caaf0159505a31e4d13826754f348c0b9b6398
 	sleep 2
 	sed -i "s/errors=remount-ro 0/user_xattr,acl,barrier=1 \t1/" /etc/fstab
 }
@@ -310,7 +252,6 @@ function PDC () {
 		echo "Voltando para a configuração de PDC"; sleep 3 ; PDC
 	fi
 	
-<<<<<<< HEAD
 }
 function AjustaResolv () {
 	echo ""
@@ -357,45 +298,11 @@ function AjustesIniciais(){ #Inclusão de IP fixo para o servidor
 	/etc/init.d/ssh restart
 	Colorize 2 "Ajustes no Limits.conf"
 	echo ""
-=======
-	echo ${Green}"Alterando o arquivo interfaces"${ResetColor}
-	sleep 2
-	sed -i "s/iface eth0/auto eth0\n&/ ; s/dhcp/static\n\taddress $R_IP\n\tnetmask $R_Mask\n\tgateway $R_Gat\n\tnetwork $R_Network\n\tbroadcast $R_Broad\n\tdns-nameserver $R_IP\n\tdns-search $R_FQDN/" /etc/network/interfaces
-	/etc/init.d/networking restart
-	
-	echo ${Green}"Alterando o arquivo hostname (o nome da maquina)"${ResetColor}
-	sleep 2
-	echo $R_Host > /etc/hostname
-	hostname $R_Host #Seta o nome da maquina sem reiniciar
-	
-	echo ${Green}"Ajustando o resolv.conf" ${ResetColor}
-	sleep 2
-	echo "domain $R_FQDN" > /etc/resolv.conf
-	echo "search $R_FQDN" >> /etc/resolv.conf
-	echo "nameserver $R_IP" >> /etc/resolv.conf
-	
-	echo ${Green}"Ajustes no hosts"${ResetColor}
-	sleep 2
-	sed -i "s/$HOSTNAME/$R_Host/;s/localhost/&\n127.0.0.1\t$R_Host\t$R_Host.$R_FQDN\n$R_IP\t$R_Host\t$R_Host.$R_FQDN/" /etc/hosts
-	
-	echo ${Green}"Inclusão dos dados no profile"${ResetColor}
-	sleep 2
-	echo 'PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/opt/samba/bin:/opt/samba/sbin"' >> /etc/profile
-	sleep 5
-	export PATH=$PATH:/opt/samba/bin:/opt/samba/sbin
-	
-	echo ${Green}"Ajustes no RSSH"${ResetColor}
-	sleep 2
-	sed -i "s/^Port 22/Port 3851/;s/^PermitRootLogin/#&/" /etc/ssh/sshd_config
-	/etc/init.d/ssh restart
-	echo ${Green}"Ajustes no Limits.conf"${ResetColor}
->>>>>>> 32caaf0159505a31e4d13826754f348c0b9b6398
 	sleep 2
 	echo	"root hard nofile 131072" >> /etc/security/limits.conf
 	echo	"root soft nofile 65536" >> /etc/security/limits.conf
 	echo 	"mioutente hard nofile 32768" >> /etc/security/limits.conf
 	echo 	"mioutente soft nofile 16384" >> /etc/security/limits.conf
-<<<<<<< HEAD
 	Colorize 2 "preparando a configuração inicial do samba4"
 	echo ""
 	sleep 2
@@ -410,41 +317,15 @@ function AjustesIniciais(){ #Inclusão de IP fixo para o servidor
 	Colorize 2 "Ajustes no krb5.conf"
 	echo ""
 	sleep 2
-=======
-	
-	echo ${Green}"preparando a configuração inicial do samba4"${ResetColor}
-	sleep 1
-	cd samba-4.2.3/
-	./configure --prefix=/opt/samba --enable-debug --enable-selftest
-	echo ${Green}"Iniciarei o processo mais lento de toda a instalação, vamos montar os pacotes"${ResetColor}
-	sleep 3
-	make
-	make install
-		
-	echo ${Green}"Ajustes no krb5.conf"${ResetColor}
->>>>>>> 32caaf0159505a31e4d13826754f348c0b9b6398
 	cp /etc/krb5.conf /etc/krb5.conf.ORIGINAL
 	rm /etc/krb5.conf
 	cp /opt/samba/share/setup/krb5.conf /etc/
 	C_FQDN=$(echo $R_FQDN | tr '[:lower:]' '[:upper:]') #Colocando o domínio em UpperCase
 	sed -i "s/\${REALM}/$C_FQDN/" /etc/krb5.conf
-<<<<<<< HEAD
 	Colorize 2 "Seu sistema está pronto para ser provisionado"
 	echo ""
 	sleep 3
 	
-=======
-	#clear
-	echo ${Green}"Seu sistema está pronto para ser provisionado"${ResetColor}
-	echo ${Green}"Inicio do Provisionamento e Testes"${ResetColor}
-	sleep 3
-	#samba-tool domain provision --use-rfc2307 --interactive
-	R_Domain=$(echo $R_FQDN | cut -d. -f1)
-	samba-tool domain provision --use-rfc2307 --realm=$R_FQDN --server-role=$R_TipoSRV --dns-backend=SAMBA_INTERNAL --domain=$R_Domain --adminpass=$R_Passwd
-	
-	echo ${Green}"Ajustando o Forwarder do samba"${ResetColor}
-	sed -i "s/forwarder =.*/forwarder = $R_Gat/" /opt/samba/etc/smb.conf
->>>>>>> 32caaf0159505a31e4d13826754f348c0b9b6398
 	
 }
 
@@ -452,7 +333,6 @@ function configuraSMB(){
 	#Pre requisitos para funcionar corretamente é criar um /dados para os arquivos, e a pasta kit para os log e lixeira
 	#Gostaria de criar antes uma conexao vpn com a kingit, deixando a instalação interligada com o laboratório.
 	#Pastas necessárias
-<<<<<<< HEAD
 	Colorize 2 "  Criando estrutura de pastas seguindo o padrão Kingit"
 	echo "
 	
@@ -467,24 +347,6 @@ function configuraSMB(){
 	A Pasta de Dados conterá apenas os dados dos clientes
 	
 	/dados/
-=======
-	mkdir -p /kit/lixeira
-	mkdir -p /kit/pastas
-	mkdir -p /kit/log
-	mkdir -p /kit/atalhos_padroes
-	mkdir -p /dados/
-	
-	#LOG do samba
-	echo "local3.notice /kit/log/samba-full_audit.log" >> /etc/rsyslog.conf
-	sleep 3
-	echo ${Green}"Inclusão da base de configuracao do smb.conf na configuracao basica"${ResetColor}
-	sed -i "8r /root/smbauditrecycle" /opt/samba/etc/smb.conf
-	sleep 10
-	echo ${Green}"Subindo Serviço do Samba"${ResetColor}
-	/opt/samba/sbin/samba
-	echo ${Green}"Incluindo inicializacao automatica"${ResetColor}
-	sed -i "s_^exit 0_/opt/samba/sbin/samba\n\n&_" /etc/rc.local
->>>>>>> 32caaf0159505a31e4d13826754f348c0b9b6398
 	
 	"
 	sleep 15
@@ -494,7 +356,6 @@ function configuraSMB(){
 	mkdir -p /kit/atalhos_padroes
 	mkdir -p /dados/
 	
-<<<<<<< HEAD
 	#LOG do samba
 	Colorize 2 "Incluindo instruções para salvar o log de acessos"
 	echo ""
@@ -582,27 +443,3 @@ function menuPrincipal () {
 
 menuPrincipal
 
-=======
-}
-
-function TestaServer(){
-	echo ${Green}"Efetuando teste NSLOOKUP"${ResetColor}
-	nslookup $R_FQDN
-	echo ${Green}"Logando na seção como Administrator: Digite sua senha: $R_Passwd"${ResetColor}
-	echo $R_Passwd | kinit administrator@$C_FQDN
-	echo ${Green}"Exibe o Ticket Recem Criado"${ResetColor}
-	klist
-	echo ${Green}"Listando o conteudo de uma pasta de rede"${ResetColor}
-	smbclient -k //$R_Host.$R_FQDN/netlogon -c 'ls'
-	echo ${Green}"Testando DNS"${ResetColor}
-	
-	host -t SRV _ldap._tcp.$R_FQDN
-	host -t SRV _kerberos._udp.$R_FQDN
-	host -t A $R_Host.$R_FQDN
-}
-
-AjustesIniciais
-Ajustefstab
-configuraSMB
-TestaServer
->>>>>>> 32caaf0159505a31e4d13826754f348c0b9b6398
