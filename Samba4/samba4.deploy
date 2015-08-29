@@ -4,8 +4,8 @@
 # Description: Deploy of Samba4 on Linux Debian Jessie 8.10
 # Script Maintainer: Rafael
 #
-# Versão: 1.0
-# Last Updated: August 25th 2015
+# Versão: 1.3
+# Last Updated: August 27th 2015
 ##################################################
 ###### Instalação do Samba4 no Debian 8.10 ####### 
 # 
@@ -25,6 +25,9 @@ Particionamento Necessário:
 no fstab ficará assim:
 /dev/xvdx	/kit	ext4	user_xattr,acl,barrier=1	1
 /dev/xvdy	/dados	ext4	user_xattr,acl,barrier=1	1
+
+home.sh ṕara membro de dominio
+wbinfo -g | grep -v "allowed rodc password replication group" | grep -v "enterprise read-only domain controllers" | grep -v "denied rodc password replication group" | grep -v "read-only domain controllers" | grep -v "group policy creator owners" | grep -v "ras and ias servers" | grep -v "domain controllers" | grep -v "enterprise admins" | grep -v "domain computers" | grep -v "cert publishers" | grep -v dnsupdateproxy | grep -v "domain admins" | grep -v "domain guests" | grep -v "schema admins" | grep -v "domain users" | grep -v dnsadmins
 DESC
 
 
@@ -55,9 +58,9 @@ Colorize 6 "
 	um poderoso e confiável ambiente de redundância.
 	
 	O que estamos automatizando?
-	- Update dos Repositórios
-	- Download dos Pré-Requisitos
-	- Download da Versão 4.2.3 do Samba4
+	- Instalação de Samba 4 Domain Controller
+	- Instalação de FileServer
+	- Inclusão de Novos HDs no Ambiente
 	- Configuração conforme dados recolhidos
 	- Criação de estrutura de Pastas
 	- Configuração de Lixeira e Auditoria
@@ -83,7 +86,8 @@ function InstalaEssenciais(){
 	##################################################
 	#Lista de itens essenciais para funcionamento do Samba 4 tanto PDC quanto BDC
 	#
-	apt-get install -y build-essential libacl1-dev libattr1-dev libblkid-dev libreadline-dev python-dev python-dnspython gdb pkg-config libgnutls28-dev libpopt-dev libldap2-dev dnsutils libbsd-dev attr krb5-user docbook-xsl libcups2-dev acl chkconfig ntp rssh	
+	#apt-get install -y build-essential libacl1-dev libattr1-dev libblkid-dev libreadline-dev python-dev python-dnspython gdb pkg-config libgnutls28-dev libpopt-dev libldap2-dev dnsutils libbsd-dev attr krb5-user docbook-xsl libcups2-dev acl chkconfig ntp rssh	
+	apt-get install -y acl attr autoconf bison build-essential debhelper dnsutils docbook-xml docbook-xsl flex gdb krb5-user libacl1-dev libaio-dev libattr1-dev libblkid-dev libbsd-dev libcap-dev libcups2-dev libgnutls28-dev libjson-perl libldap2-dev libncurses5-dev libpam0g-dev libparse-yapp-perl libpopt-dev libreadline-dev perl perl-modules pkg-config python-all-dev python-dev python-dnspython python-crypto xsltproc zlib1g-dev
 	tput clear
 	Colorize 2 "Alterando o Time/Zone para Sao Paulo"
 	echo ""
@@ -96,21 +100,24 @@ function InstalaEssenciais(){
 	sleep 2
 	wget http://ftp.samba.org/pub/samba/samba-4.2.3.tar.gz
 	sleep 2
+	Colorize 2 "Descompactando..."
+	echo ""
+	sleep 2
+	gzip -dc samba-4.2.3.tar.gz | tar x
+	Colorize 2 "Descompactado com sucesso"
+	echo ""
+	sleep 2
 	tput clear
 	Colorize 2 "Download do Arquivo samba para configuracao da lixeira e auditoria"
 	echo ""
 	sleep 2
-	wget "https://gist.githubusercontent.com/helladarion/8a537d8f9b17ed9014da/raw/243b135a03067e99fb82bee8bf8197c6b40c03bc/smbauditrecycle"
+	wget "https://gist.githubusercontent.com/helladarion/8a537d8f9b17ed9014da/raw/86b8d5e646c765fe5974a6e678cfac4f4704684b/smbauditrecycle"
 	tput clear
 	Colorize 2 "Download do Arquivo home.sh"
 	echo ""
 	sleep 2
 	wget "https://gist.githubusercontent.com/helladarion/1e0614ea0b6c691fcbb2/raw/21bde0d5008a37e41067848554a5d20cef204249/home.sh"
 	tput clear
-	Colorize 2 "Descompactando..."
-	echo ""
-	sleep 2
-	gzip -dc samba-4.2.3.tar.gz | tar xv
 }
 
 function Ajustefstab(){ #Alteração do sistema de montagem do disco no / e posteriormente para as novas unidades
@@ -120,31 +127,179 @@ function Ajustefstab(){ #Alteração do sistema de montagem do disco no / e post
 	sed -i "s/errors=remount-ro 0/user_xattr,acl,barrier=1 \t1/" /etc/fstab
 }
 
-function ProvisionamentoPDC(){
-	Colorize 2 "Inicio do Provisionamento de PDC"
-	echo ""
-	sleep 2
-	R_Domain=$(echo $R_FQDN | cut -d. -f1)
-	samba-tool domain provision --use-rfc2307 --realm=$R_FQDN --server-role=dc --dns-backend=SAMBA_INTERNAL --domain=$R_Domain --adminpass=$R_Passwd
-	sleep 2
-	Colorize 2 "Ajustando o Forwarder do samba"
-	echo ""
-	sleep 2
-	sed -i "s/forwarder =.*/forwarder = $R_DNS/" /opt/samba/etc/smb.conf
+function Provisionamento(){
+	
+	if [ $TIPO = "P" ]; then
+		Colorize 2 "Inicio do Provisionamento de PDC"
+		echo ""
+		sleep 2
+		samba-tool domain provision --use-rfc2307 --realm=$C_FQDN --server-role=dc --dns-backend=SAMBA_INTERNAL --domain=$R_Domain --adminpass=$R_Passwd
+		sleep 2
+		Colorize 2 "Ajustando o Forwarder do samba"
+		echo ""
+		sleep 2
+		sed -i "s/forwarder =.*/forwarder = $R_DNS/" /opt/samba/etc/smb.conf
+	elif [ $TIPO = "M" ]; then
+		Colorize 2 "Inicio do Provisionamento de MDC"
+		echo ""
+		sleep 2
+		echo $R_Passwd | net ads join -Uadministrator
+	elif [ $TIPO = "B" ]; then
+		Colorize 2 "Inicio do Provisionamento BDC"
+		sleep 3
+		
+		#Para que o provisionamento com BDC funcione os dados de resolv.conf e interfaces devem estar apontando para o dns do servidor mãe
+		
+		#samba-tool domain provision --use-rfc2307 --interactive
+		#R_Domain=$(echo $R_FQDN | cut -d. -f1)
+		#samba-tool domain provision --use-rfc2307 --realm=$R_FQDN --server-role=$R_TipoSRV --dns-backend=SAMBA_INTERNAL --domain=$R_Domain --adminpass=$R_Passwd
+		samba-tool domain join $R_Domain DC -Uadministrator --realm=$R_Domain --dns-backend=SAMBA_INTERNAL
+		#echo ${Green}"Ajustando o Forwarder do samba"${ResetColor}
+		#sed -i "s/forwarder =.*/forwarder = $R_Gat/" /opt/samba/etc/smb.conf
+	fi
 }
 
-function ProvisionamentoBDC(){
-	Colorize 2 "Inicio do Provisionamento BDC"
-	sleep 3
+function MDC () {
+	##################################################
+	#Levantamento de dados Iniciais, exibição
+	#
+	CenterTitle "Configurações iniciais para o FileServer MDC" 
+	tput cup 5 2
+	Colorize 6 "Digite o nome deste servidor (hostname) ex.: servidor : "
+	tput cup 6 2
+	Colorize 6 "Digite o endereço de IP deste servidor. ex.: 192.168.253.1 : "
+	tput cup 7 2
+	Colorize 6 "Escolha a Mascara de rede: 1.) 255.255.0.0 ou 2.)255.255.255.0 : "
+	tput cup 8 2
+	Colorize 6 "Digite o Gateway da rede. ex.: 192.168.253.1 : "
+	##################################################
+	#Dados do servidor AD
+	#
+	tput cup 9 2
+	echo ""
+	Colorize 6 "  ==============( Servidor AD Destino )=============="
+	echo ""
+	tput cup 12 2
+	Colorize 6 "Nome do domínio que deseja ingressar FQDN ex. empresa.matriz : "
+	tput cup 13 2
+	Colorize 6 "IP do servidor que deseja ingressar. ex.: 192.168.253.12 : "
+	tput cup 14 2
+	Colorize 6 "Senha do Administrator do AD : "
 	
-	#Para que o provisionamento com BDC funcione os dados de resolv.conf e interfaces devem estar apontando para o dns do servidor mãe
 	
-	#samba-tool domain provision --use-rfc2307 --interactive
-	#R_Domain=$(echo $R_FQDN | cut -d. -f1)
-	#samba-tool domain provision --use-rfc2307 --realm=$R_FQDN --server-role=$R_TipoSRV --dns-backend=SAMBA_INTERNAL --domain=$R_Domain --adminpass=$R_Passwd
-	samba-tool domain join $R_Domain DC -Uadministrator --realm=$R_Domain --dns-backend=SAMBA_INTERNAL
-	#echo ${Green}"Ajustando o Forwarder do samba"${ResetColor}
-	#sed -i "s/forwarder =.*/forwarder = $R_Gat/" /opt/samba/etc/smb.conf
+	##################################################
+	##Captação de Dados##
+	#
+	tput cup 5 2
+	Colorize 6 "Digite o nome deste servidor (hostname) ex.: servidor : "
+	read R_Host
+	tput cup 6 2
+	Colorize 6 "Digite o endereço de IP deste servidor. ex.: 192.168.253.1 : "
+	read R_IP
+	tput cup 7 2
+	Colorize 6 "Escolha a Mascara de rede: 1.) 255.255.0.0 ou 2.)255.255.255.0 : "
+	read R_Mask
+	if [ $R_Mask = 1 ];then
+		R_Mask=255.255.0.0
+		varRecorte=$(echo $R_IP | cut -d. -f3,4)
+		R_Broad=$(echo $R_IP | sed -n "s/$varRecorte$/255.255/p")
+		R_Network=$(echo $R_IP | sed -n "s/$varRecorte$/0.0/p")
+	else
+		R_Mask=255.255.255.0
+		varRecorte=$(echo $R_IP | cut -d. -f4)
+		R_Broad=$(echo $R_IP | sed -n "s/$varRecorte$/255/p")
+		R_Network=$(echo $R_IP | sed -n "s/$varRecorte$/0/p")
+	fi
+	tput cup 8 2
+	Colorize 6 "Digite o Gateway da rede. ex.: 192.168.253.1 : "
+	read R_Gat
+	##################################################
+	#Dados do servidor AD
+	#
+	tput cup 9 2
+	echo ""
+	Colorize 6 "  ==============( Servidor AD Destino )=============="
+	echo ""
+	tput cup 12 2
+	Colorize 6 "Nome do domínio que deseja ingressar FQDN ex. empresa.matriz : "
+	read R_FQDN
+	tput cup 13 2
+	Colorize 6 "IP do servidor que deseja ingressar. ex.: 192.168.253.12 : "
+	read R_DOMIP
+	tput cup 14 2
+	Colorize 6 "Senha do Administrator do AD : "
+	read R_Passwd
+	
+	##################################################
+	##Setando o DNS do Domínio
+	#
+	R_DNS=$R_DOMIP
+	
+	##################################################
+	#Ajustando FQDN para ficar minusculo
+	#
+	R_FQDN=$(echo $R_FQDN | tr '[:upper:]' '[:lower:]')
+	
+	#################################################
+	#Ajustando FQDN para ficar maiusculo
+	#
+	C_FQDN=$(echo $R_FQDN | tr '[:lower:]' '[:upper:]') #Colocando o domínio em UpperCase
+	##################################################
+	#Separando apenas o Domain
+	#
+	R_Domain=$(echo $C_FQDN | cut -d. -f1)
+	##################################################
+	##Seta o Tipo de Operação
+	#
+	TIPO="M"
+	
+	##################################################
+	##Conferência dos Dados
+	#
+	CenterTitle "Conferencia dos Dados"
+	echo "
+  
+  Hostname:	$R_Host
+  IP Local:	$R_IP
+  Mascara:	$R_Mask
+  Gateway:	$R_Gat
+  DNS:		$R_DNS
+  Dominio FQDN:	$R_FQDN	
+  IP Servidor:	$R_DOMIP
+  
+  
+  
+	"
+	Colorize 4 "Confirmar (s/n): "
+	read R_OK
+	
+	if [ $R_OK = "s" ];then
+		echo "Dados Confirmados, seguindo a instalação"
+		echo ""
+		sleep 3
+		InstalaEssenciais
+		sleep 3
+		AjustesIniciais
+		sleep 3
+		tput clear
+		configuraSMB
+		sleep 3
+		tput clear
+		AjustaResolv
+		Provisionamento
+		sleep 3
+		AlteraNSSwitch
+		tput clear
+		Ajustefstab
+		sleep 3
+		PermissoesMember
+		sleep 3
+		tput clear
+		#TestaServer
+	else
+		echo "Voltando para a configuração de MDC"; sleep 3 ; MDC
+	fi
+	
 }
 
 function PDC () {
@@ -182,6 +337,14 @@ function PDC () {
 	#Ajustando FQDN para ficar minusculo
 	#
 	R_FQDN=$(echo $R_FQDN | tr '[:upper:]' '[:lower:]')
+	##################################################
+	#Ajustando FQDN para ficar maiusculo
+	#
+	C_FQDN=$(echo $R_FQDN | tr '[:lower:]' '[:upper:]') #Colocando o domínio em UpperCase
+	##################################################
+	#Separando apenas o Domain
+	#
+	R_Domain=$(echo $C_FQDN | cut -d. -f1)
 	
 	tput cup 8 2
 	Colorize 6 "Digite o endereço de IP para o servidor. ex.: 192.168.253.12 : "
@@ -218,41 +381,61 @@ function PDC () {
 		R_DNS=$R_Gat
 	fi
 	##################################################
+	##Seta Variável DOMIP para configuração do Interfaces
+	#
+	R_DOMIP=$R_IP
+	##################################################
+	##Seta o Tipo de Operação
+	#
+	TIPO="P"
+	##################################################
 	##Conferência dos Dados
 	#
 	CenterTitle "Conferencia dos Dados"
 	echo "
-  
-  Hostname:	$R_Host
-  Senha:	$R_Passwd
-  Dominio FQDN:	$R_FQDN	
-  IP Servidor:	$R_IP
-  Mascara:	$R_Mask
-  Gateway:	$R_Gat
-  DNS:		$R_DNS
+
+	Installation Directory:            /opt/samba/
+	AD DC Hostname:                    $R_Host
+	AD DNS Domain Name:                $R_FQDN
+	Kerberos Realm:                    $C_FQDN
+	NT4 Domain Name/NetBIOS Name:      $R_Domain
+	IP Address:                        $R_IP
+	Server Role:                       Domain Controller (DC)
+	Domain Admin Password:             $R_Passwd
+	Forwarder DNS Server:              $R_DNS
+
 	"
 	Colorize 4 "Confirmar (s/n): "
 	read R_OK
 	
 	if [ $R_OK = "s" ];then
-		echo "Dados Confirmados, seguindo a instalação"; sleep 3; AjustesIniciais
+		echo "Dados Confirmados, seguindo a instalação"
+		echo ""
+		sleep 3
+		InstalaEssenciais
+		sleep 3
+		AjustesIniciais
 		sleep 3
 		tput clear
-		ProvisionamentoPDC
+		Provisionamento
 		sleep 3
-		tput clear
-		configuraSMB
-		sleep 3
+		#tput clear
+		#configuraSMB
+		#sleep 3
 		tput clear
 		Ajustefstab
 		sleep 3
+		IniciaSamba
+		sleep 3
 		tput clear
+		read -p "Esperando para testar o server [enter] para continuar"
 		TestaServer
 	else
 		echo "Voltando para a configuração de PDC"; sleep 3 ; PDC
 	fi
 	
 }
+
 function AjustaResolv () {
 	echo ""
 	Colorize 2 "Ajustando o resolv.conf"
@@ -260,79 +443,263 @@ function AjustaResolv () {
 	sleep 2
 	echo "domain $R_FQDN" > /etc/resolv.conf
 	echo "search $R_FQDN" >> /etc/resolv.conf
-	echo "nameserver $R_IP" >> /etc/resolv.conf
+	echo "nameserver $R_DOMIP" >> /etc/resolv.conf
 }
 
-
-function AjustesIniciais(){ #Inclusão de IP fixo para o servidor
-	
-	#Instalando Pre-Requisitos
-	InstalaEssenciais
-	Colorize 2 "Alterando o arquivo interfaces"
-	echo ""
-	sleep 2
-	sed -i "s/iface eth0/auto eth0\n&/ ; s/dhcp/static\n\taddress $R_IP\n\tnetmask $R_Mask\n\tgateway $R_Gat\n\tnetwork $R_Network\n\tbroadcast $R_Broad\n\tdns-nameserver $R_IP\n\tdns-search $R_FQDN/" /etc/network/interfaces
-	sleep 2
-	/etc/init.d/networking restart
-	Colorize 2 "Alterando o arquivo hostname (o nome da maquina)"
-	echo ""
-	sleep 2
-	echo $R_Host > /etc/hostname
-	sleep 2
-	hostname $R_Host #Seta o nome da maquina sem reiniciar	
-	AjustaResolv
+function AjustaHosts () {
 	Colorize 2 "Ajustes no hosts"
 	echo ""
 	sleep 2
-	sed -i "s/$HOSTNAME/$R_Host/;s/localhost/&\n127.0.0.1\t$R_Host\t$R_Host.$R_FQDN\n$R_IP\t$R_Host\t$R_Host.$R_FQDN/" /etc/hosts
-	Colorize 2 "Inclusão dos dados no profile"
-	echo ""
+	sed -i "s/$HOSTNAME/$R_Host/;s/localhost$/&\n127.0.0.1\t$R_Host.$R_FQDN\t$R_Host\n$R_IP\t$R_Host.$R_FQDN\t$R_Host/" /etc/hosts
+}
+
+function ConfiguraMake () {
+	cd /root/samba-4.2.3/
 	sleep 2
-	echo 'PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/opt/samba/bin:/opt/samba/sbin"' >> /etc/profile
-	sleep 3
-	export PATH=$PATH:/opt/samba/bin:/opt/samba/sbin
-	Colorize 2 "Ajustes no RSSH, alteração da porta para 3851"
-	echo ""
-	sleep 2
-	sed -i "s/^Port 22/Port 3851/;s/^PermitRootLogin/#&/" /etc/ssh/sshd_config
-	/etc/init.d/ssh restart
-	Colorize 2 "Ajustes no Limits.conf"
-	echo ""
-	sleep 2
-	echo	"root hard nofile 131072" >> /etc/security/limits.conf
-	echo	"root soft nofile 65536" >> /etc/security/limits.conf
-	echo 	"mioutente hard nofile 32768" >> /etc/security/limits.conf
-	echo 	"mioutente soft nofile 16384" >> /etc/security/limits.conf
-	Colorize 2 "preparando a configuração inicial do samba4"
-	echo ""
-	sleep 2
-	cd samba-4.2.3/
-	sleep 2
-	./configure --prefix=/opt/samba --enable-debug --enable-selftest
+	if [ $TIPO = "P" ]; then
+			Colorize 2 "Inicinado configuração de Samba PDC"
+			echo ""
+			sleep 3
+			./configure --prefix=/opt/samba --enable-debug --enable-selftest
+	elif [ $TIPO = "M" ]; then
+			Colorize 2 "Inicinado configuração de Samba MDC"
+			echo ""
+			sleep 3
+			./configure --prefix=/opt/samba --with-ads --with-shared-modules=idmap_ad --enable-debug --enable-selftest
+	elif [ $TIPO = "B" ]; then
+			Colorize 2 "Inicinado configuração de Samba BDC"
+			echo ""
+			sleep 3
+		echo "Ainda em desenvolvimento"
+	fi
+	
 	Colorize 2 "Iniciarei o processo mais lento de toda a instalação, vamos montar os pacotes"
 	echo ""
 	sleep 3
 	make
 	make install
+	sleep 3
 	Colorize 2 "Ajustes no krb5.conf"
 	echo ""
 	sleep 2
 	cp /etc/krb5.conf /etc/krb5.conf.ORIGINAL
 	rm /etc/krb5.conf
 	cp /opt/samba/share/setup/krb5.conf /etc/
-	C_FQDN=$(echo $R_FQDN | tr '[:lower:]' '[:upper:]') #Colocando o domínio em UpperCase
-	sed -i "s/\${REALM}/$C_FQDN/" /etc/krb5.conf
+	sed -i "s/\${REALM}/$C_FQDN/;s/true/&\n\n[realms]\n\t$C_FQDN = {\n\tkdc = $R_DOMIP\n\tadmin_server = $R_DOMIP\n}/" /etc/krb5.conf
 	Colorize 2 "Seu sistema está pronto para ser provisionado"
 	echo ""
-	sleep 3
+	sleep 4
+}
+
+function AlteraInterfaces () {
+	Colorize 2 "Alterando o arquivo interfaces"
+	echo ""
+	sleep 2
+	sed -i "s/iface eth0/auto eth0\n&/ ; s/dhcp/static\n\taddress $R_IP\n\tnetmask $R_Mask\n\tgateway $R_Gat\n\tnetwork $R_Network\n\tbroadcast $R_Broad\n\tdns-nameserver $R_DOMIP\n\tdns-search $R_FQDN/" /etc/network/interfaces
+	Colorize 2 "Reiniciando o dispositivo de Rede Eth0"
+	echo ""
+	sleep 2
+	/etc/init.d/networking restart
+}
+
+function AjustesIniciais(){ 
+	#Chama Função para alteração do dispositivo de rede para ip fixo
+	#
+	if [ $TIPO = "P" ];then
+		AlteraInterfaces
+		
+		Colorize 2 "Alterando o arquivo hostname (o nome da maquina)"
+		echo ""
+		sleep 2
+		echo $R_Host > /etc/hostname
+		sleep 2
+		hostname $R_Host #Seta o nome da maquina sem reiniciar	
+		#Chama Função para ajuste do resolv.conf
+		#
+		AjustaResolv
+		#Chama Função para ajuste do hosts
+		#
+		AjustaHosts
+		
+		Colorize 2 "Inclusão dos dados no profile"
+		echo ""
+		sleep 2
+		echo 'PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/opt/samba/bin:/opt/samba/sbin"' >> /etc/profile
+		sleep 3
+		export PATH=$PATH:/opt/samba/bin:/opt/samba/sbin
+		Colorize 2 "Ajustes no RSSH, alteração da porta para 3851"
+		echo ""
+		sleep 2
+		sed -i "s/^Port 22/Port 3851/;s/^PermitRootLogin/#&/" /etc/ssh/sshd_config
+		/etc/init.d/ssh restart
+		
+		
+		Colorize 2 "Ajustes no Limits.conf"
+		echo ""
+		sleep 2
+		echo	"root hard nofile 131072" >> /etc/security/limits.conf
+		echo	"root soft nofile 65536" >> /etc/security/limits.conf
+		echo 	"mioutente hard nofile 32768" >> /etc/security/limits.conf
+		echo 	"mioutente soft nofile 16384" >> /etc/security/limits.conf
+		Colorize 2 "preparando a configuração inicial do samba4"
+		echo ""
+		sleep 2
+		#Chama Função para Configuracao dos Pacotes
+		ConfiguraMake
+	elif [ $TIPO = "M" ];then
+		AlteraInterfaces
+		
+		Colorize 2 "Alterando o arquivo hostname (o nome da maquina)"
+		echo ""
+		sleep 2
+		echo $R_Host > /etc/hostname
+		sleep 2
+		hostname $R_Host #Seta o nome da maquina sem reiniciar	
+		#Chama Função para ajuste do resolv.conf
+		#
+		AjustaResolv
+		#Chama Função para ajuste do hosts
+		#
+		AjustaHosts
+		
+		Colorize 2 "Inclusão dos dados no profile"
+		echo ""
+		sleep 2
+		echo 'PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/opt/samba/bin:/opt/samba/sbin"' >> /etc/profile
+		sleep 3
+		export PATH=$PATH:/opt/samba/bin:/opt/samba/sbin
+		Colorize 2 "Ajustes no RSSH, alteração da porta para 3851"
+		echo ""
+		sleep 2
+		sed -i "s/^Port 22/Port 3851/;s/^PermitRootLogin/#&/" /etc/ssh/sshd_config
+		/etc/init.d/ssh restart
+		#Chama Função para Configuracao dos Pacotes
+		ConfiguraMake
+		
+	elif [ $TIPO = "B" ];then
+		echo "Ainda em Desenvolvimento"
+	fi
+
+}
+
+function CriaSmb () {
+	#R_Host="serverteste"
+	#C_FQDN="ENGEFORM.MATRIZ"
+	#R_Grupo=$(echo $C_FQDN | cut -d. -f1)
+	echo "
+[global]
+
+  netbios name = $R_Host
+  workgroup = $R_Domain
+  security = ADS
+  realm = $C_FQDN
+  dedicated keytab file = /etc/krb5.keytab
+  kerberos method = secrets and keytab
+  username map = /opt/samba/user.map
+
+  idmap config *:backend = tdb
+  idmap config *:range = 2000-9999
+  idmap config $R_Domain:backend = ad
+  idmap config $R_Domain:schema_mode = rfc2307
+  idmap config $R_Domain:range = 10000-99999
+
+  winbind nss info = rfc2307
+  winbind trusted domains only = no
+  winbind use default domain = yes
+  winbind enum users  = yes
+  winbind enum groups = yes
+  winbind refresh tickets = Yes
+
+[kit]
+  path = /kit
+  read only = no
+  admin users = @'"'$R_Domain\Domain Admins'"'
+
+"	> /opt/samba/etc/smb.conf        
+}
+
+function IniciaSamba () {
+	if [ $TIPO = "M" ]; then
+		tput clear
+		Colorize 2 "Subindo Serviço do winbind"
+		echo ""
+		sleep 2
+		killall winbind
+		/opt/samba/sbin/winbindd
+		Colorize 2 "Subindo Serviço do nmbd"
+		echo ""
+		sleep 2
+		killall nmbd
+		/opt/samba/sbin/nmbd
+		Colorize 2 "Subindo Serviço do smbd"
+		echo ""
+		sleep 2
+		killall smbd
+		/opt/samba/sbin/smbd
+		Colorize 2 "Incluindo inicializacao automatica"
+		echo ""
+		sleep 4
+		sed -i "s_^exit 0_/opt/samba/sbin/winbindd\n/opt/samba/sbin/nmbd\n/opt/samba/sbin/smbd\n\n&_" /etc/rc.local
+		
+	elif [ $TIPO = "P" ]; then
+		tput clear
+		Colorize 2 "Subindo Serviço do Samba"
+		echo ""
+		sleep 2
+		/opt/samba/sbin/samba
+		sleep 4
+		Colorize 2 "Verificando se o serviço está em pé"
+		echo ""
+		ps -aux | grep samba
+		sleep 4
+		tput clear
+		Colorize 2 "Incluindo inicializacao automatica"
+		echo ""
+		sleep 4
+		sed -i "s_^exit 0_/opt/samba/sbin/samba\n\n&_" /etc/rc.local
+	fi
 	
 	
+}
+
+function PermissoesMember () {
+	tput clear
+	Colorize 2 "Preparando pré requisitos para permissionamento de arquivos"
+	echo ""
+	sleep 2
+	echo "!root = $R_Domain\Administrator $R_Domain\administrator" > /opt/samba/user.map
+	##################################################
+	##Reinicia Serviços
+	#
+	IniciaSamba
+	Colorize 2 "Dando privilégios totais ao computador membro para o administrador do Domínio"
+	echo ""
+	sleep 2
+	echo $R_Passwd | net rpc rights grant '$R_Domain\Domain Admins' SeDiskOperatorPrivilege -U '$R_Domain\administrator'
+}
+
+
+function AlteraNSSwitch () {
+	tput clear
+	Colorize 2 "Realizando Alterações no nsswith.conf"
+	echo ""
+	sleep 2
+	sed -i "s/passwd:.*/passwd:\t\tfiles winbind/;s/group:.*/group:\t\tfiles winbind/;s/networks:.*/networks:\tfiles dns/" /etc/nsswitch.conf
+	tput clear
+	Colorize 2 "Criando links para funcionamento no samba"
+	echo ""
+	sleep 2
+	ln -s /opt/samba/lib/libnss_winbind.so /usr/lib/x86_64-linux-gnu/
+	ln -s /usr/lib/x86_64-linux-gnu/libnss_winbind.so /usr/lib/x86_64-linux-gnu/libnss_winbind.so.2
+	ldconfig
+	net cache flush
 }
 
 function configuraSMB(){
 	#Pre requisitos para funcionar corretamente é criar um /dados para os arquivos, e a pasta kit para os log e lixeira
 	#Gostaria de criar antes uma conexao vpn com a kingit, deixando a instalação interligada com o laboratório.
 	#Pastas necessárias
+	#
 	Colorize 2 "  Criando estrutura de pastas seguindo o padrão Kingit"
 	echo "
 	
@@ -349,6 +716,24 @@ function configuraSMB(){
 	/dados/
 	
 	"
+	if [ $TIPO = "M" ]; then
+		CriaSmb
+		tput clear
+		Colorize 2 "Inclusão da base de configuracao do smb.conf na configuracao basica"
+		echo ""
+		sleep 3
+		sed -i "29r /root/smbauditrecycle" /opt/samba/etc/smb.conf
+		sleep 15
+	else
+		tput clear
+		Colorize 2 "Inclusão da base de configuracao do smb.conf na configuracao basica"
+		echo ""
+		sleep 3
+		sed -i "8r /root/smbauditrecycle" /opt/samba/etc/smb.conf
+		sleep 15
+	fi
+	
+	
 	sleep 15
 	mkdir -p /kit/lixeira
 	mkdir -p /kit/pastas
@@ -362,27 +747,25 @@ function configuraSMB(){
 	sleep 2
 	echo "local3.notice /kit/log/samba-full_audit.log" >> /etc/rsyslog.conf
 	sleep 3
-	tput clear
-	Colorize 2 "Inclusão da base de configuracao do smb.conf na configuracao basica"
-	echo ""
-	sleep 3
-	sed -i "8r /root/smbauditrecycle" /opt/samba/etc/smb.conf
-	sleep 10
-	tput clear
-	Colorize 2 "Subindo Serviço do Samba"
-	echo ""
-	sleep 2
-	/opt/samba/sbin/samba
-	tput clear
-	Colorize 2 "Incluindo inicializacao automatica"
-	echo ""
-	sleep 4
-	sed -i "s_^exit 0_/opt/samba/sbin/samba\n\n&_" /etc/rc.local
 	
 }
 
 function TestaServer(){
+	
+	
+	
+	
+	Colorize 2 "Exibindo Configurações Locais: resolv.conf"
+	echo ""
+	cat /etc/resolv.conf
+	sleep 7
 	AjustaResolv
+	cat /etc/resolv.conf
+	sleep 7
+	Colorize 2 "Verificando se o Samba está ligado"
+	echo ""
+	ps -aux | grep samba
+	sleep 3
 	Colorize 2 "Efetuando teste NSLOOKUP"
 	echo ""
 	sleep 3
@@ -395,7 +778,12 @@ function TestaServer(){
 	echo ""
 	sleep 3
 	klist
-	Colorize 2 "Listando o conteudo de uma pasta de rede"
+	sleep 3
+	Colorize 2 "Mostrando compartilhamentos"
+	echo ""
+	smbclient -L //$R_Host.$R_FQDN -U%
+	sleep 3
+	Colorize 2 "Listando o conteudo da pasta netlogon de rede"
 	echo ""
 	sleep 3
 	smbclient -k //$R_Host.$R_FQDN/netlogon -c 'ls'
@@ -427,19 +815,25 @@ function menuPrincipal () {
 	echo "
   1. Criar um novo servidor autonomo PDC (Primary Domain Controller).
   2. Criar um BDC (Backup Domain Controller) de um servidor existente. 
+  3. Criar apenas um File Server membro de um AD Samba 4 Existente
+  4. Incluir novo HD no Servidor Samba4.
   9. Sair
   
   Qual a sua escolha:"
-	tput cup 10 21
+	tput cup 12 21
 	read R_Mnu
 	
 	case $R_Mnu in
 		1) PDC ;;
 		2) Colorize 5 "  Funcionalidade ainda em desenvolvimento. Voltando ao Menu Principal" ; sleep 3 ; menuPrincipal ;;
+		3) MDC ;;
+		4) Colorize 5 "  Funcionalidade ainda em desenvolvimento. Voltando ao Menu Principal" ; sleep 3 ; menuPrincipal ;;
 		9) echo "  Valew Falow" ; exit;;
 		*) echo "  Por favor escolha uma opção valida. Voltando para o Menu Principal."; sleep 3 ; menuPrincipal ;;
 	esac
 }
 
 menuPrincipal
-
+rm /root/textfuncs.fnc
+rm /root/smbauditrecycle
+#CriaSmb
