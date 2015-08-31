@@ -26,8 +26,9 @@ no fstab ficará assim:
 /dev/xvdx	/kit	ext4	user_xattr,acl,barrier=1	1
 /dev/xvdy	/dados	ext4	user_xattr,acl,barrier=1	1
 
-home.sh ṕara membro de dominio
-wbinfo -g | grep -v "allowed rodc password replication group" | grep -v "enterprise read-only domain controllers" | grep -v "denied rodc password replication group" | grep -v "read-only domain controllers" | grep -v "group policy creator owners" | grep -v "ras and ias servers" | grep -v "domain controllers" | grep -v "enterprise admins" | grep -v "domain computers" | grep -v "cert publishers" | grep -v dnsupdateproxy | grep -v "domain admins" | grep -v "domain guests" | grep -v "schema admins" | grep -v "domain users" | grep -v dnsadmins
+Para realizar a administração do AD samba4 no windows 7 utilize o RSAT
+http://www.microsoft.com/downloads/en/details.aspx?FamilyID=7d2f6ad7-656b-4313-a005-4e344e43997d&displaylang=en
+
 DESC
 
 
@@ -106,18 +107,21 @@ function InstalaEssenciais(){
 	gzip -dc samba-4.2.3.tar.gz | tar x
 	Colorize 2 "Descompactado com sucesso"
 	echo ""
-	sleep 2
-	tput clear
-	Colorize 2 "Download do Arquivo samba para configuracao da lixeira e auditoria"
-	echo ""
-	sleep 2
-	wget "https://gist.githubusercontent.com/helladarion/8a537d8f9b17ed9014da/raw/86b8d5e646c765fe5974a6e678cfac4f4704684b/smbauditrecycle"
-	tput clear
-	Colorize 2 "Download do Arquivo home.sh"
-	echo ""
-	sleep 2
-	wget "https://gist.githubusercontent.com/helladarion/1e0614ea0b6c691fcbb2/raw/21bde0d5008a37e41067848554a5d20cef204249/home.sh"
-	tput clear
+	if [ $TIPO = "M" ]; then
+		sleep 2
+		tput clear
+		Colorize 2 "Download do Arquivo samba para configuracao da lixeira e auditoria"
+		echo ""
+		sleep 2
+		wget "https://gist.githubusercontent.com/helladarion/8a537d8f9b17ed9014da/raw/11ce4a4b3e6eecb42fa55caa82e27c2f8774e59c/smbauditrecycle"  
+		tput clear
+		Colorize 2 "Download do Arquivo home_fs.sh"
+		echo ""
+		sleep 2
+		wget "https://gist.githubusercontent.com/helladarion/82335dec9745d4166d28/raw/326c9cdfbf60fab13ea2cb96877cbd7ae10e0b1e/home_fs.sh"
+		chmod +x /root/home_fs.sh
+		tput clear
+	fi
 }
 
 function Ajustefstab(){ #Alteração do sistema de montagem do disco no / e posteriormente para as novas unidades
@@ -125,6 +129,8 @@ function Ajustefstab(){ #Alteração do sistema de montagem do disco no / e post
 	echo ""
 	sleep 2
 	sed -i "s/errors=remount-ro 0/user_xattr,acl,barrier=1 \t1/" /etc/fstab
+	sleep 4
+	mount -o remount,rw /
 }
 
 function Provisionamento(){
@@ -282,6 +288,9 @@ function MDC () {
 		AjustesIniciais
 		sleep 3
 		tput clear
+		Ajustefstab
+		sleep 3
+		tput clear
 		configuraSMB
 		sleep 3
 		tput clear
@@ -289,10 +298,10 @@ function MDC () {
 		Provisionamento
 		sleep 3
 		AlteraNSSwitch
-		tput clear
-		Ajustefstab
 		sleep 3
 		PermissoesMember
+		sleep 3
+		ConfigACL
 		sleep 3
 		tput clear
 		#TestaServer
@@ -419,12 +428,12 @@ function PDC () {
 		tput clear
 		Provisionamento
 		sleep 3
-		#tput clear
-		#configuraSMB
-		#sleep 3
 		tput clear
 		Ajustefstab
 		sleep 3
+		#tput clear
+		#configuraSMB
+		#sleep 3
 		IniciaSamba
 		sleep 3
 		tput clear
@@ -598,10 +607,10 @@ function CriaSmb () {
   username map = /opt/samba/user.map
 
   idmap config *:backend = tdb
-  idmap config *:range = 2000-9999
-  idmap config $R_Domain:backend = ad
+  idmap config *:range = 70001-80000
+  idmap config $R_Domain:backend = rid
   idmap config $R_Domain:schema_mode = rfc2307
-  idmap config $R_Domain:range = 10000-99999
+  idmap config $R_Domain:range = 3000000-4000000
 
   winbind nss info = rfc2307
   winbind trusted domains only = no
@@ -609,13 +618,13 @@ function CriaSmb () {
   winbind enum users  = yes
   winbind enum groups = yes
   winbind refresh tickets = Yes
-
-[kit]
-  path = /kit
-  read only = no
-  admin users = @'"'$R_Domain\Domain Admins'"'
+  winbind cache time = 40
 
 "	> /opt/samba/etc/smb.conf        
+#[kit]
+  #path = /kit
+  #read only = no
+  #admin users = @'"'$R_Domain\Domain Admins'"'
 }
 
 function IniciaSamba () {
@@ -675,16 +684,15 @@ function PermissoesMember () {
 	Colorize 2 "Dando privilégios totais ao computador membro para o administrador do Domínio"
 	echo ""
 	sleep 2
-	echo $R_Passwd | net rpc rights grant '$R_Domain\Domain Admins' SeDiskOperatorPrivilege -U '$R_Domain\administrator'
+	echo $R_Passwd | net rpc rights grant '$R_Domain\Domain Admins' SeDiskOperatorPrivilege -U '$R_Domain\administrator' -I $R_FQDN
 }
-
 
 function AlteraNSSwitch () {
 	tput clear
 	Colorize 2 "Realizando Alterações no nsswith.conf"
 	echo ""
 	sleep 2
-	sed -i "s/passwd:.*/passwd:\t\tfiles winbind/;s/group:.*/group:\t\tfiles winbind/;s/networks:.*/networks:\tfiles dns/" /etc/nsswitch.conf
+	sed -i "s/passwd:.*/passwd:\t\tcompat winbind/;s/group:.*/group:\t\tcompat winbind/;s/networks:.*/networks:\tfiles dns/" /etc/nsswitch.conf
 	tput clear
 	Colorize 2 "Criando links para funcionamento no samba"
 	echo ""
@@ -722,19 +730,12 @@ function configuraSMB(){
 		Colorize 2 "Inclusão da base de configuracao do smb.conf na configuracao basica"
 		echo ""
 		sleep 3
-		sed -i "29r /root/smbauditrecycle" /opt/samba/etc/smb.conf
-		sleep 15
-	else
-		tput clear
-		Colorize 2 "Inclusão da base de configuracao do smb.conf na configuracao basica"
-		echo ""
-		sleep 3
-		sed -i "8r /root/smbauditrecycle" /opt/samba/etc/smb.conf
+		sed -i "25r /root/smbauditrecycle" /opt/samba/etc/smb.conf
 		sleep 15
 	fi
 	
-	
 	sleep 15
+	mkdir -p /kit
 	mkdir -p /kit/lixeira
 	mkdir -p /kit/pastas
 	mkdir -p /kit/log
@@ -748,6 +749,11 @@ function configuraSMB(){
 	echo "local3.notice /kit/log/samba-full_audit.log" >> /etc/rsyslog.conf
 	sleep 3
 	
+}
+
+function ConfigACL () {
+	setfacl -m d:g:"domain admins":rwx /kit
+	setfacl -m d:g:"domain admins":rwx /dados
 }
 
 function TestaServer(){
