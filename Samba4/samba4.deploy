@@ -4,7 +4,7 @@
 # Description: Deploy of Samba4 on Linux Debian Jessie 8.10
 # Script Maintainer: Rafael
 #
-# Versão: 1.6
+# Versão: 1.8
 # Last Updated: September 10th 2015
 ##################################################
 ###### Instalação do Samba4 no Debian 8.10 ####### 
@@ -109,7 +109,7 @@ function InstalaEssenciais(){
 	gzip -dc samba-4.3.0.tar.gz | tar x
 	Colorize 2 "Descompactado com sucesso"
 	echo ""
-	if [ $TIPO = "M" ]; then
+	if [ $TIPO = "M" ] || [ $TIPO = "B" ]; then
 		sleep 2
 		tput clear
 		Colorize 2 "Download do Arquivo samba para configuracao da lixeira e auditoria"
@@ -117,12 +117,20 @@ function InstalaEssenciais(){
 		sleep 2
 		wget "https://gist.githubusercontent.com/helladarion/8a537d8f9b17ed9014da/raw/11ce4a4b3e6eecb42fa55caa82e27c2f8774e59c/smbauditrecycle"  
 		tput clear
+	fi
+	if [ $TIPO = "M" ]; then
 		Colorize 2 "Download do Arquivo home_fs.sh"
 		echo ""
 		sleep 2
 		wget "https://gist.githubusercontent.com/helladarion/82335dec9745d4166d28/raw/326c9cdfbf60fab13ea2cb96877cbd7ae10e0b1e/home_fs.sh"
 		chmod +x /root/home_fs.sh
 		tput clear
+	elif [ $TIPO = "B" ]; then
+		Colorize 2 "Download do Arquivo home.sh"
+		echo ""
+		sleep 2
+		wget "https://gist.githubusercontent.com/helladarion/1e0614ea0b6c691fcbb2/raw/21bde0d5008a37e41067848554a5d20cef204249/home.sh"
+		chmod +x /root/home.sh
 	fi
 }
 
@@ -433,48 +441,29 @@ function PDC () {
 		echo ""
 		sleep 3
 		InstalaEssenciais
-		#echo "Mostrando configurações de ip atuais"
-		#ifconfig
-		#read -p "   Essenciais Baixados Pressione [Enter] Para iniciar a Instalação"
 		sleep 3
 		AjustesIniciais
-		#echo "Mostrando configurações de ip após mudanças"
-		#ifconfig
 		/etc/init.d/networking restart
-		#ifconfig
-		#read -p "   Pressione [Enter] Para iniciar a Instalação"
 		sleep 3
 		tput clear
 		Ajustefstab
-		#cat /etc/resolv.conf
 		sleep 5
 		AjustaResolv
-		#read -p "   Pressione [Enter] Para conferir a rede"
-		#cat /etc/resolv.conf
-		#echo ""
-		#ifconfig
-		#read -p "   Pressione [Enter] Para iniciar a Instalação"
 		sleep 3
 		tput clear
 		Provisionamento
-		#read -p "   Pressione [Enter] Para iniciar a Instalação"
 		sleep 3
-		#echo "exibindo o Resolv Pela ultima Vez"
-		#cat /etc/resolv.conf
-		#sleep 5
-		#tput clear
-		#AjustaResolv
-		#read -p "   Pressione [Enter] Para iniciar a Instalação"
-		#sleep 3
-		#tput clear
-		#configuraSMB 
-		#sleep 3
+		echo "exibindo o Resolv Pela ultima Vez"
+		cat /etc/resolv.conf
+		sleep 5
+		AjustaResolv
 		IniciaSamba
-		#read -p "   Pressione [Enter] Para iniciar a Instalação"
 		sleep 3
 		tput clear
-		#read -p "Esperando para testar o server [enter] para continuar"
 		TestaServer
+		Colorize 1 "Configurações prontas reiniciando o computador em 30 segundos"
+		sleep 30
+		reboot
 	else
 		echo "Voltando para a configuração de PDC"; sleep 3 ; PDC
 	fi
@@ -606,12 +595,12 @@ function BDC () {
 		tput clear
 		Ajustefstab
 		sleep 3
-		#tput clear
-		#configuraSMB
-		#sleep 3
 		tput clear
 		AjustaResolv
 		Provisionamento
+		sleep 3
+		tput clear
+		configuraSMB
 		sleep 3
 		IniciaSamba
 		#AlteraNSSwitch
@@ -636,13 +625,15 @@ function AjustaResolv () {
 	echo "domain $R_FQDN" > /etc/resolv.conf
 	echo "search $R_FQDN" >> /etc/resolv.conf
 	echo "nameserver $R_DOMIP" >> /etc/resolv.conf
+	echo "nameserver 127.0.0.1" >> /etc/resolv.conf
 }
 
 function AjustaHosts () {
 	Colorize 2 "Ajustes no hosts"
 	echo ""
 	sleep 2
-	sed -i "s/$HOSTNAME/$R_Host/;s/localhost$/&\n127.0.0.1\t$R_Host.$R_FQDN\t$R_Host\n$R_IP\t$R_Host.$R_FQDN\t$R_Host/" /etc/hosts
+	#sed -i "s/$HOSTNAME/$R_Host/;s/localhost$/&\n127.0.0.1\t$R_Host.$R_FQDN\t$R_Host\n$R_IP\t$R_Host.$R_FQDN\t$R_Host/" /etc/hosts
+	sed -i "s/$HOSTNAME/$R_Host/;s/localhost$/&\n$R_IP\t$R_Host.$R_FQDN\t$R_Host/" /etc/hosts
 }
 
 function ConfiguraMake () {
@@ -954,6 +945,14 @@ function configuraSMB(){
 		sleep 3
 		sed -i "25r /root/smbauditrecycle" /opt/samba/etc/smb.conf
 		sleep 15
+		
+	elif [ $TIPO = "B" ]; then
+		tput clear
+		Colorize 2 "Inclusão da base de configuracao do smb.conf na configuracao basica"
+		echo ""
+		sleep 3
+		sed -i "8r /root/smbauditrecycle" /opt/samba/etc/smb.conf
+		sleep 15
 	fi
 	
 	sleep 15
@@ -1033,19 +1032,84 @@ function TestaServer(){
 	"
 }
 
+function CriaCompartilhamento() {
+	##################################################
+	#Levantamento de dados Iniciais, exibição
+	#
+	CenterTitle "Configuração de Compartilhamento" 
+	tput cup 5 2
+	Colorize 1 "
+	Importante lembrar que para que o sistema funcione corretamente
+	todos os compartilhamentos devem ter um grupo com o mesmo nome.
+	Caso você deseje que este compartilhamento seja disponibilizado
+	automaticamente	para os usuários, não se esqueça de:
+	- Dar as permissões para o grupo na pasta criada,
+	- Criar o atalho dentro da pasta atalhos padrões 
+	- Criar a GPO com permissão para o grupo.
+	
+	"
+	Colorize 6 "Digite o nome do compartilhamento que deseja : "
+		
+	##################################################
+	##Captação de Dados##
+	#
+	tput cup 5 2
+	Colorize 1 "
+	Importante lembrar que para que o sistema funcione corretamente
+	todos os compartilhamentos devem ter um grupo com o mesmo nome.
+	Caso você deseje que este compartilhamento seja disponibilizado
+	automaticamente	para os usuários, não se esqueça de:
+	- Dar as permissões para o grupo na pasta criada,
+	- Criar o atalho dentro da pasta atalhos padrões 
+	- Criar a GPO com permissão para o grupo.
+	
+	"
+	Colorize 6 "Digite o nome do compartilhamento que deseja : "
+	read R_Compart
+	##################################################
+	##Seta o Tipo de Operação
+	#
+	TIPO="C"
+	
+	CenterTitle "Conferencia dos Dados"
+	echo "
+  
+  Pasta Local:	/dados/$R_Compart
+ 
+	"
+	Colorize 4 "Confirmar (s/n): "
+	read R_OK
+	
+	if [ $R_OK = "s" ];then
+		Colorize 6 "Criando as pastas e o compartilhamento $R_Compart"
+		sleep 3
+		mkdir -p /dados/$R_Compart
+	echo "
+[$R_Compart]
+	path = /dados/$R_Compart
+	read only = No
+	Browseable = Yes" >> /opt/samba/etc/smb.conf
+		echo ""
+		Colorize 6 "Compartilhamento Criado com sucesso"
+		echo ""
+	fi
+	
+}
+
 function menuPrincipal () {
 	CenterTitle "Samba 4 Deploy"
 	tput cup 5 2
 	Colorize 4 "O que deseja fazer?"
 	echo "
   1. Criar um novo servidor autonomo PDC (Primary Domain Controller).
-  2. Criar um BDC (Backup Domain Controller) de um servidor existente. 
+  2. Criar um BDC FileServer de um servidor existente. 
   3. Criar apenas um File Server membro de um AD Samba 4 Existente
   4. Incluir novo HD no Servidor Samba4.
+  5. Criar Compartilhamento em FileServer
   9. Sair
   
   Qual a sua escolha:"
-	tput cup 12 21
+	tput cup 13 21
 	read R_Mnu
 	
 	case $R_Mnu in
@@ -1053,15 +1117,17 @@ function menuPrincipal () {
 		2) BDC ;;
 		3) MDC ;;
 		4) Colorize 5 "  Funcionalidade ainda em desenvolvimento. Voltando ao Menu Principal" ; sleep 3 ; menuPrincipal ;;
+		5) CriaCompartilhamento ;;
 		9) echo "  Valew Falow" ; exit;;
 		*) echo "  Por favor escolha uma opção valida. Voltando para o Menu Principal."; sleep 3 ; menuPrincipal ;;
 	esac
 }
 
 menuPrincipal
-rm /root/textfuncs.fnc
-if [ $TIPO = "M" ]; then
+#rm /root/textfuncs.fnc
+if [ $TIPO = "M" ] || [ $TIPO = "B" ]; then
 	rm /root/smbauditrecycle
+	rm -R /root/samba-4.3.0/
 fi
-rm -R /root/samba-4.3.0/
+
 #CriaSmb
