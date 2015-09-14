@@ -5,7 +5,7 @@
 # Script Maintainer: Rafael
 #
 # Versão: 1.8
-# Last Updated: September 10th 2015
+# Last Updated: September 14th 2015
 ##################################################
 ###### Instalação do Samba4 no Debian 8.10 ####### 
 # 
@@ -63,7 +63,7 @@ Colorize 6 "
 	O que estamos automatizando?
 	- Instalação de Samba 4 Domain Controller
 	- Instalação de Segundo AD linkado
-	- Instalação de FileServer como membro de Domínio
+	- Instalação de FileServer BDC
 	- Inclusão de Novos HDs no Ambiente
 	- Configuração conforme dados recolhidos
 	- Criação de estrutura de Pastas
@@ -169,8 +169,8 @@ function Provisionamento(){
 		sleep 2
 		Colorize 2 "Ajustando o Forwarder do samba"
 		echo ""
-		#sleep 2
-		#sed -i "s/forwarder =.*/forwarder = $R_DNS/" /opt/samba/etc/smb.conf
+		sleep 2
+		sed -i "s/interfaces =.*/&\n\tdns forwarder = 8.8.8.8/" /opt/samba/etc/smb.conf
 		sleep 3
 		
 		#Para que o provisionamento com BDC funcione os dados de resolv.conf e interfaces devem estar apontando para o dns do servidor mãe
@@ -611,6 +611,9 @@ function BDC () {
 		sleep 3
 		tput clear
 		#TestaServer
+		Colorize 1 "Configurações prontas reiniciando o computador em 30 segundos"
+		sleep 30
+		reboot
 	else
 		echo "Voltando para a configuração de MDC"; sleep 3 ; MDC
 	fi
@@ -951,7 +954,7 @@ function configuraSMB(){
 		Colorize 2 "Inclusão da base de configuracao do smb.conf na configuracao basica"
 		echo ""
 		sleep 3
-		sed -i "8r /root/smbauditrecycle" /opt/samba/etc/smb.conf
+		sed -i "10r /root/smbauditrecycle" /opt/samba/etc/smb.conf
 		sleep 15
 	fi
 	
