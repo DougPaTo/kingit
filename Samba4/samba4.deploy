@@ -172,15 +172,6 @@ function Provisionamento(){
 		sleep 2
 		sed -i "s/interfaces =.*/&\n\tdns forwarder = 8.8.8.8/" /opt/samba/etc/smb.conf
 		sleep 3
-		
-		#Para que o provisionamento com BDC funcione os dados de resolv.conf e interfaces devem estar apontando para o dns do servidor mãe
-		
-		#samba-tool domain provision --use-rfc2307 --interactive
-		#R_Domain=$(echo $R_FQDN | cut -d. -f1)
-		#samba-tool domain provision --use-rfc2307 --realm=$R_FQDN --server-role=$R_TipoSRV --dns-backend=SAMBA_INTERNAL --domain=$R_Domain --adminpass=$R_Passwd
-		#samba-tool domain join $R_Domain DC -Uadministrator --realm=$R_Domain --dns-backend=SAMBA_INTERNAL
-		#echo ${Green}"Ajustando o Forwarder do samba"${ResetColor}
-		#sed -i "s/forwarder =.*/forwarder = $R_Gat/" /opt/samba/etc/smb.conf
 	fi
 }
 
@@ -1127,10 +1118,8 @@ function menuPrincipal () {
 }
 
 menuPrincipal
-#rm /root/textfuncs.fnc
+
 if [ $TIPO = "M" ] || [ $TIPO = "B" ]; then
 	rm /root/smbauditrecycle
 	rm -R /root/samba-4.3.0/
 fi
-
-#CriaSmb
