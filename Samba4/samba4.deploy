@@ -31,6 +31,7 @@ http://www.microsoft.com/downloads/en/details.aspx?FamilyID=7d2f6ad7-656b-4313-a
 
 
 Incluir verificação de erros de download para Samba e outros arquivos.
+Incluir sistema de backup do samba e restore
 DESC
 
 
@@ -90,7 +91,7 @@ function InstalaEssenciais(){
 	#Lista de itens essenciais para funcionamento do Samba 4 tanto PDC quanto BDC
 	#
 	#apt-get install -y build-essential libacl1-dev libattr1-dev libblkid-dev libreadline-dev python-dev python-dnspython gdb pkg-config libgnutls28-dev libpopt-dev libldap2-dev dnsutils libbsd-dev attr krb5-user docbook-xsl libcups2-dev acl chkconfig ntp rssh	
-	apt-get install -y acl attr autoconf bison build-essential debhelper dnsutils docbook-xml docbook-xsl flex gdb krb5-user libacl1-dev libaio-dev libattr1-dev libblkid-dev libbsd-dev libcap-dev libcups2-dev libgnutls28-dev libjson-perl libldap2-dev libncurses5-dev libpam0g-dev libparse-yapp-perl libpopt-dev libreadline-dev perl perl-modules pkg-config python-all-dev python-dev python-dnspython python-crypto xsltproc zlib1g-dev
+	apt-get install -y acl attr autoconf bison build-essential debhelper dnsutils docbook-xml docbook-xsl flex gdb krb5-user libacl1-dev libaio-dev libattr1-dev libblkid-dev libbsd-dev libcap-dev libcups2-dev libgnutls28-dev libjson-perl libldap2-dev libncurses5-dev libpam0g-dev libparse-yapp-perl libpopt-dev libreadline-dev perl perl-modules pkg-config python-all-dev python-dev python-dnspython python-crypto xsltproc zlib1g-dev ntp rssh
 	tput clear
 	Colorize 2 "Alterando o Time/Zone para Sao Paulo"
 	echo ""
