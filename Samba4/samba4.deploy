@@ -116,7 +116,7 @@ function InstalaEssenciais(){
 		Colorize 2 "Download do Arquivo samba para configuracao da lixeira e auditoria"
 		echo ""
 		sleep 2
-		wget "https://gist.githubusercontent.com/helladarion/8a537d8f9b17ed9014da/raw/11ce4a4b3e6eecb42fa55caa82e27c2f8774e59c/smbauditrecycle"  
+		wget "https://gist.githubusercontent.com/helladarion/8a537d8f9b17ed9014da/raw/11ce4a4b3e6eecb42fa55caa82e27c2f8774e59c/smbauditrecycle"  https://gist.githubusercontent.com/helladarion/1e0614ea0b6c691fcbb2/raw/4dd62a03949b6e2116f648c95604055d139a7584/home.sh
 		tput clear
 	fi
 	if [ $TIPO = "M" ]; then
@@ -130,8 +130,12 @@ function InstalaEssenciais(){
 		Colorize 2 "Download do Arquivo home.sh"
 		echo ""
 		sleep 2
-		wget "https://gist.githubusercontent.com/helladarion/1e0614ea0b6c691fcbb2/raw/21bde0d5008a37e41067848554a5d20cef204249/home.sh"
+		wget "https://gist.githubusercontent.com/helladarion/1e0614ea0b6c691fcbb2/raw/7d7e2ae20882c59cab4515681ae8ae88ac47e177/home.sh"
 		chmod +x /root/home.sh
+		Colorize 2 "Download do Arquivo home.sh"
+		echo ""
+		sleep 2
+		wget "https://gist.githubusercontent.com/helladarion/80fa057c7e72b9c0921f/raw/eb820969f8896f80e5782c3c70d97a0d87fe2edd/Atalhos_base.vbs"
 	fi
 }
 
@@ -594,10 +598,10 @@ function BDC () {
 		tput clear
 		configuraSMB
 		sleep 3
-		IniciaSamba
-		#AlteraNSSwitch
+		#IniciaSamba
+		AlteraNSSwitch
 		sleep 3
-		#PermissoesMember
+		PermissoesMember
 		sleep 3
 		#ConfigACL
 		sleep 3
@@ -947,6 +951,7 @@ function configuraSMB(){
 		echo ""
 		sleep 3
 		sed -i "10r /root/smbauditrecycle" /opt/samba/etc/smb.conf
+		#sed -i "25r /root/smbauditrecycle" /opt/samba/etc/smb.conf
 		sleep 15
 	fi
 	
