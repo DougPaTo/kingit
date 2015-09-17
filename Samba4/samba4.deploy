@@ -4,8 +4,8 @@
 # Description: Deploy of Samba4 on Linux Debian Jessie 8.10
 # Script Maintainer: Rafael
 #
-# Versão: 1.8
-# Last Updated: September 14th 2015
+# Versão: 2.0
+# Last Updated: September 16th 2015
 ##################################################
 ###### Instalação do Samba4 no Debian 8.10 ####### 
 # 
@@ -116,7 +116,7 @@ function InstalaEssenciais(){
 		Colorize 2 "Download do Arquivo samba para configuracao da lixeira e auditoria"
 		echo ""
 		sleep 2
-		wget "https://gist.githubusercontent.com/helladarion/8a537d8f9b17ed9014da/raw/11ce4a4b3e6eecb42fa55caa82e27c2f8774e59c/smbauditrecycle"  https://gist.githubusercontent.com/helladarion/1e0614ea0b6c691fcbb2/raw/4dd62a03949b6e2116f648c95604055d139a7584/home.sh
+		wget "https://gist.githubusercontent.com/helladarion/8a537d8f9b17ed9014da/raw/11ce4a4b3e6eecb42fa55caa82e27c2f8774e59c/smbauditrecycle"
 		tput clear
 	fi
 	if [ $TIPO = "M" ]; then
@@ -1117,7 +1117,7 @@ function menuPrincipal () {
 		2) BDC ;;
 		3) MDC ;;
 		4) Colorize 5 "  Funcionalidade ainda em desenvolvimento. Voltando ao Menu Principal" ; sleep 3 ; menuPrincipal ;;
-		5) CriaCompartilhamento ;;
+		5) Colorize 5 "  Funcionalidade atrelada do home.sh. Voltando ao Menu Principal" ; sleep 3 ; menuPrincipal ;; #CriaCompartilhamento ;;
 		9) echo "  Valew Falow" ; exit;;
 		*) echo "  Por favor escolha uma opção valida. Voltando para o Menu Principal."; sleep 3 ; menuPrincipal ;;
 	esac
