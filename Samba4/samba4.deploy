@@ -4,8 +4,8 @@
 # Description: Deploy of Samba4 on Linux Debian Jessie 8.10
 # Script Maintainer: Rafael
 #
-# Versão: 2.2
-# Last Updated: September 18th 2015
+# Versão: 2.3
+# Last Updated: September 22th 2015
 ##################################################
 ###### Instalação do Samba4 no Debian 8.10 ####### 
 # 
@@ -17,7 +17,7 @@ No encurtador de links utilize o seguinte comando para baixar o código wget goo
 para executar faça bash samba4deploy.sh e siga os passos da instalação.
 
 Instalação do Debian 8.10
-Particionamento Necessário:
+Particionamento Necessário: 
 / - 15Gb
 /kit - 50Gb
 /dados - 1Tera ou mais
@@ -164,7 +164,7 @@ function Provisionamento(){
 		Colorize 2 "Inicio do Provisionamento de MDC"
 		echo ""
 		sleep 2
-		echo $R_Passwd | net ads join -Uadministrator
+		echo $R_Passwd | net ads join -U$R_ADMWIN
 	elif [ $TIPO = "B" ]; then
 		Colorize 2 "Inicio do Provisionamento de BDC"
 		echo ""
@@ -205,6 +205,8 @@ function MDC () {
 	tput cup 13 2
 	Colorize 6 "IP do servidor que deseja ingressar. ex.: 192.168.253.12 : "
 	tput cup 14 2
+	Colorize 6 "Usuario Administrator do AD : "
+	tput cup 15 2
 	Colorize 6 "Senha do Administrator do AD : "
 	
 	
@@ -248,6 +250,9 @@ function MDC () {
 	Colorize 6 "IP do servidor que deseja ingressar. ex.: 192.168.253.12 : "
 	read R_DOMIP
 	tput cup 14 2
+	Colorize 6 "Usuario Administrator do AD : "
+	read R_ADMWIN
+	tput cup 15 2
 	Colorize 6 "Senha do Administrator do AD : "
 	read R_Passwd
 	
