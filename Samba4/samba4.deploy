@@ -4,7 +4,7 @@
 # Description: Deploy of Samba4 on Linux Debian Jessie 8.10
 # Script Maintainer: Rafael
 #
-# Versão: 2.3
+# Versão: 2.4
 # Last Updated: September 22th 2015
 ##################################################
 ###### Instalação do Samba4 no Debian 8.10 ####### 
@@ -32,6 +32,10 @@ http://www.microsoft.com/downloads/en/details.aspx?FamilyID=7d2f6ad7-656b-4313-a
 
 Incluir verificação de erros de download para Samba e outros arquivos.
 Incluir sistema de backup do samba e restore
+
+Todos os grupos serão pastas compartilhadas, se você quiser que um grupo não vire pasta compartilhada inicie o grupo com NS_
+
+Incluir serviço de FTP no BDC File Server
 DESC
 
 
@@ -102,7 +106,7 @@ function InstalaEssenciais(){
 	Colorize 2 "Download do Samba 4.3.0"
 	echo ""
 	sleep 2
-	wget http://ftp.samba.org/pub/samba/samba-4.3.0.tar.gz
+	wget http://ftp.samba.org/pub/samba/stable/samba-4.3.0.tar.gz
 	sleep 2
 	Colorize 2 "Descompactando..."
 	echo ""
@@ -164,7 +168,7 @@ function Provisionamento(){
 		Colorize 2 "Inicio do Provisionamento de MDC"
 		echo ""
 		sleep 2
-		echo $R_Passwd | net ads join -U$R_ADMWIN
+		echo $R_Passwd | net ads join -U $R_ADMWIN
 	elif [ $TIPO = "B" ]; then
 		Colorize 2 "Inicio do Provisionamento de BDC"
 		echo ""
@@ -320,6 +324,7 @@ function MDC () {
 		AlteraNSSwitch
 		sleep 3
 		PermissoesMember
+		AjustaResolv
 		sleep 3
 		ConfigACL
 		sleep 3
@@ -1120,7 +1125,7 @@ function menuPrincipal () {
 	case $R_Mnu in
 		1) PDC ;;
 		2) BDC ;;
-		3) MDC ;;
+		3) MDC ;;8 dias filme
 		4) Colorize 5 "  Funcionalidade ainda em desenvolvimento. Voltando ao Menu Principal" ; sleep 3 ; menuPrincipal ;;
 		5) Colorize 5 "  Funcionalidade atrelada do home.sh. Voltando ao Menu Principal" ; sleep 3 ; menuPrincipal ;; #CriaCompartilhamento ;;
 		9) echo "  Valew Falow" ; exit;;
