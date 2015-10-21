@@ -1125,7 +1125,7 @@ function menuPrincipal () {
 	case $R_Mnu in
 		1) PDC ;;
 		2) BDC ;;
-		3) MDC ;;8 dias filme
+		3) MDC ;;
 		4) Colorize 5 "  Funcionalidade ainda em desenvolvimento. Voltando ao Menu Principal" ; sleep 3 ; menuPrincipal ;;
 		5) Colorize 5 "  Funcionalidade atrelada do home.sh. Voltando ao Menu Principal" ; sleep 3 ; menuPrincipal ;; #CriaCompartilhamento ;;
 		9) echo "  Valew Falow" ; exit;;
