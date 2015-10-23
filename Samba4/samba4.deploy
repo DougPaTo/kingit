@@ -5,7 +5,7 @@
 # Script Maintainer: Rafael
 #
 # Versão: 2.4
-# Last Updated: September 22th 2015
+# Last Updated: October 21th 2015
 ##################################################
 ###### Instalação do Samba4 no Debian 8.10 ####### 
 # 
@@ -134,7 +134,7 @@ function InstalaEssenciais(){
 		Colorize 2 "Download do Arquivo home.sh"
 		echo ""
 		sleep 2
-		wget "https://gist.githubusercontent.com/helladarion/1e0614ea0b6c691fcbb2/raw/7d7e2ae20882c59cab4515681ae8ae88ac47e177/home.sh"
+		wget "https://gist.githubusercontent.com/helladarion/1e0614ea0b6c691fcbb2/raw/ae9481942c38c96cef45a01d33650e94e6acca2f/home.sh"
 		chmod +x /root/home.sh
 		Colorize 2 "Download do Arquivo home.sh"
 		echo ""
