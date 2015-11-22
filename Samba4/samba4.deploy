@@ -120,7 +120,7 @@ function InstalaEssenciais(){
 		Colorize 2 "Download do Arquivo samba para configuracao da lixeira e auditoria"
 		echo ""
 		sleep 2
-		wget "https://gist.githubusercontent.com/helladarion/8a537d8f9b17ed9014da/raw/08d4e2e2bffdfe162cd45e1b87184dd0b00843c6/smbauditrecycle"
+		wget "https://gist.githubusercontent.com/helladarion/8a537d8f9b17ed9014da/raw/f43c256bb46eb22f5ec20104769aa8f608087e94/smbauditrecycle"
 		tput clear
 	fi
 	if [ $TIPO = "M" ]; then
