@@ -134,7 +134,7 @@ function InstalaEssenciais(){
 		Colorize 2 "Download do Arquivo home.sh"
 		echo ""
 		sleep 2
-		wget "https://gist.githubusercontent.com/helladarion/1e0614ea0b6c691fcbb2/raw/ae9481942c38c96cef45a01d33650e94e6acca2f/home.sh"
+		wget "https://gist.githubusercontent.com/helladarion/1e0614ea0b6c691fcbb2/raw/f2e29f5b5d62a563a2789f69a12e3d701a614653/home.sh"
 		chmod +x /root/home.sh
 		Colorize 2 "Download do Arquivo home.sh"
 		echo ""
