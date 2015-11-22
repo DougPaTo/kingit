@@ -120,7 +120,7 @@ function InstalaEssenciais(){
 		Colorize 2 "Download do Arquivo samba para configuracao da lixeira e auditoria"
 		echo ""
 		sleep 2
-		wget "https://gist.githubusercontent.com/helladarion/8a537d8f9b17ed9014da/raw/11ce4a4b3e6eecb42fa55caa82e27c2f8774e59c/smbauditrecycle"
+		wget "https://gist.githubusercontent.com/helladarion/8a537d8f9b17ed9014da/raw/08d4e2e2bffdfe162cd45e1b87184dd0b00843c6/smbauditrecycle"
 		tput clear
 	fi
 	if [ $TIPO = "M" ]; then
@@ -136,7 +136,7 @@ function InstalaEssenciais(){
 		sleep 2
 		wget "https://gist.githubusercontent.com/helladarion/1e0614ea0b6c691fcbb2/raw/f2e29f5b5d62a563a2789f69a12e3d701a614653/home.sh"
 		chmod +x /root/home.sh
-		Colorize 2 "Download do Arquivo home.sh"
+		Colorize 2 "Download do Arquivo de atalhos_base.sh"
 		echo ""
 		sleep 2
 		wget "https://gist.githubusercontent.com/helladarion/80fa057c7e72b9c0921f/raw/eb820969f8896f80e5782c3c70d97a0d87fe2edd/Atalhos_base.vbs"
