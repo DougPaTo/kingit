@@ -130,6 +130,8 @@ function InstalaEssenciais(){
 		wget "https://gist.githubusercontent.com/helladarion/82335dec9745d4166d28/raw/326c9cdfbf60fab13ea2cb96877cbd7ae10e0b1e/home_fs.sh"
 		chmod +x /root/home_fs.sh
 		tput clear
+		sleep 2
+		wget "https://gist.githubusercontent.com/helladarion/80fa057c7e72b9c0921f/raw/eb820969f8896f80e5782c3c70d97a0d87fe2edd/Atalhos_base.vbs"
 	elif [ $TIPO = "B" ]; then
 		Colorize 2 "Download do Arquivo home.sh"
 		echo ""
@@ -604,6 +606,11 @@ function BDC () {
 		tput clear
 		AjustaResolv
 		Provisionamento
+		sleep 3
+		echo "exibindo o Resolv Pela ultima Vez"
+		cat /etc/resolv.conf
+		sleep 5
+		AjustaResolv
 		sleep 3
 		tput clear
 		configuraSMB
