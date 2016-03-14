@@ -605,15 +605,17 @@ function BDC () {
 		Ajustefstab
 		sleep 3
 		tput clear
+		echo 'exibindo Resolv antes de provisionar'
 		cat /etc/resolv.conf
 		sleep 5
-		tput clear
 		AjustaResolv
+		read -p "   Pressione [Enter] Para continuar"
 		sleep 3
 		Provisionamento
 		sleep 3
 		echo "exibindo o Resolv Pela ultima Vez"
 		cat /etc/resolv.conf
+		read -p "   Pressione [Enter] Para continuar"
 		sleep 5
 		AjustaResolv
 		sleep 3
