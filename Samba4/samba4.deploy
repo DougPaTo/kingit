@@ -609,6 +609,9 @@ function BDC () {
 		cat /etc/resolv.conf
 		sleep 5
 		AjustaResolv
+		echo 'exibindo Resolv antes de provisionar'
+		cat /etc/resolv.conf
+		sleep 3
 		read -p "   Pressione [Enter] Para continuar"
 		sleep 3
 		Provisionamento
@@ -622,12 +625,12 @@ function BDC () {
 		tput clear
 		configuraSMB
 		sleep 3
-		IniciaSamba
+		#IniciaSamba
 		AlteraNSSwitch
 		sleep 3
-		PermissoesMember
+		#PermissoesMember
 		sleep 3
-		ConfigACL
+		#ConfigACL
 		sleep 3
 		tput clear
 		TestaServer
