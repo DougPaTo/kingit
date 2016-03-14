@@ -4,10 +4,10 @@
 # Description: Deploy of Samba4 on Linux Debian Jessie 8.10
 # Script Maintainer: Rafael
 #
-# Versão: 2.4
-# Last Updated: October 21th 2015
+# Versão: 2.5
+# Last Updated: March 13th 2016
 ##################################################
-###### Instalação do Samba4 no Debian 8.10 ####### 
+###### Instalação do Samba4 no Debian 8.30 ####### 
 # 
 : <<'DESC'
 Sistema desenvolvido para instalar complentamente um servidor DC em Samba4 no Debian 8.10 Jessie
@@ -176,7 +176,8 @@ function Provisionamento(){
 		echo ""
 		sleep 2
 		#samba-tool domain provision --use-rfc2307 --realm=$C_FQDN --server-role=dc --dns-backend=SAMBA_INTERNAL --domain=$R_Domain --adminpass=$R_Passwd
-		samba-tool domain join $R_FQDN DC -Uadministrator --realm=$R_FQDN --dns-backend=SAMBA_INTERNAL --option="interfaces=lo eth0" --option="bind interfaces only=yes" --password=$R_Passwd
+		#samba-tool domain join $R_FQDN DC -Uadministrator --realm=$R_FQDN --dns-backend=SAMBA_INTERNAL --option="interfaces=lo eth0" --option="bind interfaces only=yes" --password=$R_Passwd
+		samba-tool domain join $R_FQDN DC -Uadministrator --realm=$R_FQDN --dns-backend=SAMBA_INTERNAL --password=$R_Passwd
 		sleep 2
 		Colorize 2 "Ajustando o Forwarder do samba"
 		echo ""
@@ -615,15 +616,15 @@ function BDC () {
 		tput clear
 		configuraSMB
 		sleep 3
-		#IniciaSamba
+		IniciaSamba
 		AlteraNSSwitch
 		sleep 3
 		PermissoesMember
 		sleep 3
-		#ConfigACL
+		ConfigACL
 		sleep 3
 		tput clear
-		#TestaServer
+		TestaServer
 		Colorize 1 "Configurações prontas reiniciando o computador em 30 segundos"
 		sleep 30
 		reboot
