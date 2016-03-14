@@ -605,7 +605,11 @@ function BDC () {
 		Ajustefstab
 		sleep 3
 		tput clear
+		cat /etc/resolv.conf
+		sleep 5
+		tput clear
 		AjustaResolv
+		sleep 3
 		Provisionamento
 		sleep 3
 		echo "exibindo o Resolv Pela ultima Vez"
