@@ -193,7 +193,12 @@ SCHEMA
 #mongo $BASEM --eval 'db.vpn.insert({"VPN_Range": "5100-5120"})'
 ##Calculate the ports
 function FirstLoad() {
-	
+	Colorize 3 "Instaling programs needed"
+	echo ""
+	echo "Updating apt base"
+	apt-get update &> /dev/null
+	echo "Installing MongoDB and OpenVpn"
+	apt-get install mongodb-clients openvpn &> /dev/null
 ##Verify if there is some data there
 if [ $(mongo $BASEM --eval 'db.vpn.find({"VPN_Range": "5100-5120"}, {_id: 0}).limit(1).shellPrint()' | grep VPN_Range | sed -n 's/.*\(VPN_Range\).*/\1/p') ]; then
 	Colorize 2 "Data Exists, we are ready to go"
