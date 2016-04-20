@@ -10,11 +10,14 @@
 ###### 			VPNs Matriz e Obras		   ####### 
 # 
 
+
+#address to download the code: wget https://goo.gl/4sS4FU -O vpn.sh
 ## O que precisa ser feito
 ## Cadastrar Clientes
 ## Atribuir portas e listar portas disponiveis
 ## exportar configuracao - .conf - firewall e static.key
 ## testar conectividade e exibir configuracoes para clientes.
+
 
 ## Start Connectivity test
 : << 'TASKS'
@@ -244,7 +247,7 @@ function SuggestParameters() {
 	R_Network="$(route -n | grep UG | tr -s ' ' | cut -d' ' -f 2 | cut -d. -f1-3).0"
 	R_Broad="$(route -n | grep UG | tr -s ' ' | cut -d' ' -f 2 | cut -d. -f1-3).255"
 	R_DNS="8.8.8.8"
-	R_FQDN="vpn_client"
+	R_FQDN="vpnclient"
 	
 	echo "
 	Suggested Parameters for Network are:
@@ -261,9 +264,11 @@ function SuggestParameters() {
 	read R_ANSWER
 	if [ $R_ANSWER = "Y" ]||[ $R_ANSWER = "y" ]; then
 		Colorize 3 "Setting up the information on this server"
+		echo ""
 		sleep 2
 		sed -i "s/iface eth0/auto eth0\n&/ ; s/dhcp/static\n\taddress $R_IP\n\tnetmask $R_Mask\n\tgateway $R_Gat\n\tnetwork $R_Network\n\tbroadcast $R_Broad\n\tdns-nameserver $R_DNS\n\tdns-search $R_FQDN/" /etc/network/interfaces
 		Colorize 3 "Restarting the service"
+		echo ""
 		sleep 2
 		/etc/init.d/networking restart
 		echo $R_FQDN > /etc/hostname
