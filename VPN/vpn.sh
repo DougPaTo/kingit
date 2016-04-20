@@ -151,7 +151,7 @@ function VerifyInternetCon(){
 function TestMongoConnection(){
 	Colorize 4 "Trying to connect to MongoDB on $BASEM"
 	echo ""
-	if $(nc -w 3 -v $(echo $BASEM | sed 's_/test__') 27017 2>&1 | grep -q "succeeded!") ; then
+	if [ $(nc -w 3 -z -v $(echo $BASEM | sed 's_/test__') 27017 &> /dev/null && echo "Online" || echo "Offline") = "Online" ] ; then
 		Colorize 2 "Connected and Working"
 		echo ""
 		Colorize 4 "Verifying Connection to MongoDB"
@@ -381,7 +381,7 @@ openvpn --config ersaude.conf &
 #VerifyInternetCon
 #MongoDbConnection
 #FirstLoad
-#TestMongoConnection
+TestMongoConnection
 #whatColor
 
-SuggestParameters
+#SuggestParameters
