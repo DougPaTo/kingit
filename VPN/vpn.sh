@@ -132,7 +132,7 @@ function FirstLoad() {
 	echo "Updating apt base"
 	apt-get update &> /dev/null
 	echo "Installing MongoDB and OpenVpn"
-	apt-get install -y mongodb-clients openvpn iperf
+	apt-get install -y mongodb-clients openvpn iperf rssh
 ##Verify if there is some data there
 #Putting Fixed IP Address
 SuggestParameters
@@ -140,14 +140,15 @@ SuggestParameters
 PortStart=5100
 PortEnd=5120
 WanIP=$(dig +short myip.opendns.com @resolver1.opendns.com)
-echo "It's necessary to forward the trafic of the range of ports
-	  between $PortStart and $PortEnd to your VPN Server IP: $R_IP 
-	  in your router in order for this server to work.
-	  Please Make the changes and press the button to test if the 
-	  ports are properly opened.
+echo "
+	It's necessary to forward the trafic of the range of ports
+	between $PortStart and $PortEnd to your VPN Server IP: $R_IP 
+	in your router in order for this server to work.
+	Please Make the changes and press the button to test if the 
+	ports are properly opened.
 	
-	  We are going to test the access for this ports 
-	  from your external IP: $WanIP
+	We are going to test the access for this ports 
+	from your external IP: $WanIP
 	"
 	
 read -p "Press [Enter] to continue "
@@ -158,16 +159,19 @@ read -p "Press [Enter] to continue "
 #first you need to stabilish a trusted connection between the client and the server
 #to do this we can use one autodeploy key with the command ssh-keygen -t rsa -f /root/.ssh/id_rsa -q -N ""
 #then we need to create the trusted connection usind ssh with the command ssh-copy-id -i ~/.ssh/id_rsa.pub root@serverip_or_ddns
+echo "Creating ssh-key rsa" 
 ssh-keygen -t rsa -f /root/.ssh/id_rsa -q -N ""
-ssh-copy-id -i ~/.ssh/id_rsa.pub root@minerafa.pointto.us
+echo "Creating Trusted Relationship between servers"
+ssh-copy-id -p3851 -i ~/.ssh/id_rsa.pub root@minerafa.pointto.us
 
-
+Colorize 5 "Starting UDP Port tests"
+echo ""
 
 for i in $(seq 5100 1 5120); do
 	Colorize 6 "Testing Port $i: \c"
 	#echo $(nc -w 3 -z -v  $(echo $WanIP | sed 's_/test__') $i &> /dev/null && echo "Online" || echo "Offline")
 	 iperf -s -p $i -u &> /dev/null &
-	if $(ssh -p3851 root@minerafa.pointto.us "iperf -c kingit.ddnsking.com -u -p $i -b 10M 2> /dev/null | grep -q 'Server Report'"); then
+	if $(ssh -p3851 root@minerafa.pointto.us "iperf -c minerafa.pointto.us -u -p $i -b 10M 2> /dev/null | grep -q 'Server Report'"); then
 		echo "Online"
 	else
 		echo "Offline"
