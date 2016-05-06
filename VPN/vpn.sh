@@ -4,8 +4,8 @@
 # Description: Install client and server and Verification of VPNs
 # Script Maintainer: Rafael
 #
-# Versão: 0.5
-# Last Updated: May 4th 2016
+# Versão: 0.7
+# Last Updated: May 6th 2016
 ##################################################
 ###### 			VPNs Matriz e Obras		   ####### 
 # 
@@ -159,21 +159,21 @@ read -p "Press [Enter] to continue "
 #to do this we can use one autodeploy key with the command ssh-keygen -t rsa -f /root/.ssh/id_rsa -q -N ""
 #then we need to create the trusted connection usind ssh with the command ssh-copy-id -i ~/.ssh/id_rsa.pub root@serverip_or_ddns
 ssh-keygen -t rsa -f /root/.ssh/id_rsa -q -N ""
-ssh-copy-id -i ~/.ssh/id_rsa.pub root@serverip_or_ddns
+ssh-copy-id -i ~/.ssh/id_rsa.pub root@minerafa.pointto.us
 
 
 
 for i in $(seq 5100 1 5120); do
 	Colorize 6 "Testing Port $i: \c"
 	#echo $(nc -w 3 -z -v  $(echo $WanIP | sed 's_/test__') $i &> /dev/null && echo "Online" || echo "Offline")
-	ssh -p5245 root@kingit.ddnsking.com "iperf -s -p $i -u &> /dev/null" &
-	if $(iperf -c kingit.ddnsking.com -u -p $i -b 10M 2> /dev/null | grep -q "Server Report"); then
+	 iperf -s -p $i -u &> /dev/null &
+	if $(ssh -p3851 root@minerafa.pointto.us "iperf -c kingit.ddnsking.com -u -p $i -b 10M 2> /dev/null | grep -q 'Server Report'"); then
 		echo "Online"
 	else
 		echo "Offline"
 	fi
 done
-	ssh -p5245 root@kingit.ddnsking.com "killall iperf"
+	killall iperf
 
 ##
 : <<'test'
