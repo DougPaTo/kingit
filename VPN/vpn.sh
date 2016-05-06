@@ -437,8 +437,8 @@ function MenuVPN() {
 		read R_MVPN
 		
 		case $R_MVPN in
-		1) echo "  VPN Server Creator"; sleep 3; tput clear; R_FQDN="vpnserver",VerifyInternetCon ;;
-		2) echo "  VPN Client Creator"; sleep 3; tput clear; R_FQDN="vpnclient" exit ;;
+		1) echo "  VPN Server Creator"; sleep 3; tput clear; R_FQDN="vpnserver"; VerifyInternetCon ;;
+		2) echo "  VPN Client Creator"; sleep 3; tput clear; R_FQDN="vpnclient"; exit ;;
 		9) echo "  Valew Falow" ; exit;;
 		*) echo "  Please choose a valid option"; sleep 3 ; MenuVPN ;;
 	esac
