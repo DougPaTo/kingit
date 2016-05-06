@@ -159,10 +159,13 @@ read -p "Press [Enter] to continue "
 #first you need to stabilish a trusted connection between the client and the server
 #to do this we can use one autodeploy key with the command ssh-keygen -t rsa -f /root/.ssh/id_rsa -q -N ""
 #then we need to create the trusted connection usind ssh with the command ssh-copy-id -i ~/.ssh/id_rsa.pub root@serverip_or_ddns
-echo "Creating ssh-key rsa" 
-ssh-keygen -t rsa -f /root/.ssh/id_rsa -q -N ""
-echo "Creating Trusted Relationship between servers"
-ssh-copy-id -p3851 -i ~/.ssh/id_rsa.pub root@minerafa.pointto.us
+
+if [ ! -f ~/.ssh/id_rsa.pub ]; then
+	echo "Creating ssh-key rsa" 
+	ssh-keygen -t rsa -f /root/.ssh/id_rsa -q -N ""
+	echo "Creating Trusted Relationship between servers"
+	ssh-copy-id -p3851 -i ~/.ssh/id_rsa.pub root@minerafa.pointto.us
+fi
 
 Colorize 5 "Starting UDP Port tests"
 echo ""
