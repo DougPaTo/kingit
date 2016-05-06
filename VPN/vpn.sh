@@ -243,7 +243,7 @@ function SuggestParameters() {
 		R_Network="$(route -n | grep UG | tr -s ' ' | cut -d' ' -f 2 | cut -d. -f1-3).0"
 		R_Broad="$(route -n | grep UG | tr -s ' ' | cut -d' ' -f 2 | cut -d. -f1-3).255"
 		R_DNS="8.8.8.8"
-		R_FQDN="vpnclient"
+		#R_FQDN="vpnserver"
 		
 		echo "
 		Suggested Parameters in Interface $R_Interface for Network are:
@@ -437,8 +437,8 @@ function MenuVPN() {
 		read R_MVPN
 		
 		case $R_MVPN in
-		1) echo "  VPN Server Creator"; sleep 3; tput clear; VerifyInternetCon ;;
-		2) echo "  VPN Client Creator"; sleep 3; exit ;;
+		1) echo "  VPN Server Creator"; sleep 3; tput clear; R_FQDN="vpnserver",VerifyInternetCon ;;
+		2) echo "  VPN Client Creator"; sleep 3; tput clear; R_FQDN="vpnclient" exit ;;
 		9) echo "  Valew Falow" ; exit;;
 		*) echo "  Please choose a valid option"; sleep 3 ; MenuVPN ;;
 	esac
