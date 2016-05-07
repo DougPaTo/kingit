@@ -158,7 +158,7 @@ testUDP ##Call the function
 
 function testUDP() {
 ##TEST UDP Connection
-local count=0
+local count = 0
 #first you need to stabilish a trusted connection between the client and the server
 #to do this we can use one autodeploy key with the command ssh-keygen -t rsa -f /root/.ssh/id_rsa -q -N ""
 #then we need to create the trusted connection usind ssh with the command ssh-copy-id -i ~/.ssh/id_rsa.pub root@serverip_or_ddns
@@ -181,7 +181,7 @@ for i in $(seq 5100 1 5120); do
 		echo "Online"
 	else
 		echo "Offline"
-		count=count+1
+		count=count + 1
 		if [ count -gt 3 ]; then
 			break
 			Colorize 1 "We had too many errors on the test"
@@ -204,7 +204,7 @@ function TestDDNS(){
 	Colorize 8 "Please type your ddns address for testing: "
 	read R_DDNS
 	##Test if the DDNS is set correctly
-	if [ $R_DDNS = $WanIP ]; then
+	if $(ping -c1 $R_DDNS | grep -q $WanIP) ; then
 		Colorize 2 "DDNs working correctly"
 		echo ""
 	else	
