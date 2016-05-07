@@ -186,6 +186,7 @@ for i in $(seq 5100 1 5120); do
 			Colorize 1 "We had too many errors on the test"
 			read -p "Press [Enter] to start the test Again"
 			testUDP
+			killall iperf
 		fi
 	fi
 done
