@@ -183,7 +183,6 @@ for i in $(seq 5100 1 5120); do
 		echo "Offline"
 		Ecount=$(($Ecount + 1))
 		if [ $Ecount -gt 3 ]; then
-			break
 			Colorize 1 "We had too many errors on the test"
 			read -p "Press [Enter] to start the test Again"
 			testUDP
