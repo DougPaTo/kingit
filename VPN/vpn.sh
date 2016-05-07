@@ -4,8 +4,8 @@
 # Description: Install client and server and Verification of VPNs
 # Script Maintainer: Rafael
 #
-# Versão: 0.7
-# Last Updated: May 6th 2016
+# Versão: 0.8
+# Last Updated: May 7th 2016
 ##################################################
 ###### 			VPNs Matriz e Obras		   ####### 
 # 
@@ -63,7 +63,8 @@ source textfuncs.fnc
 BASEM=192.168.0.50/test
 BANCOM="vpn"
 R_VPNSRV="kingit.ddnsking.com"
-
+TestSrvPort=3851
+TestSrvAddress="minerafa.pointto.us"
 #mongo $BASEM --eval 'db.getCollectionNames()' #Verify if the collection exists
 #mongo $BASEM --eval 'db.vpn.insert({"VPN_Range": "5100-5120"})'
 #mongo $BASEM --eval 'printjson(db.'$BANCOM'.find({} ,{_id: 0, "VPN_Range": 1, "Report.TotalSize": 1}).sort({"Report.StartDate":-1}).pretty().shellPrint())'	
@@ -135,7 +136,7 @@ function FirstLoad() {
 	apt-get install -y mongodb-clients openvpn iperf rssh
 ##Verify if there is some data there
 #Putting Fixed IP Address
-SuggestParameters
+SuggestParameters ##It is for checking if there is a fixed ip address, or to setup one if it's necessary
 
 PortStart=5100
 PortEnd=5120
@@ -152,19 +153,21 @@ echo "
 	"
 	
 read -p "Press [Enter] to continue "
+testUDP ##Call the function
+}
 
-
+function testUDP() {
 ##TEST UDP Connection
-
+local count=0
 #first you need to stabilish a trusted connection between the client and the server
 #to do this we can use one autodeploy key with the command ssh-keygen -t rsa -f /root/.ssh/id_rsa -q -N ""
 #then we need to create the trusted connection usind ssh with the command ssh-copy-id -i ~/.ssh/id_rsa.pub root@serverip_or_ddns
 
-if [ ! -f ~/.ssh/id_rsa.pub ]; then
+if [ ! -f ~/.ssh/id_rsa.pub ]; then #Verify if you already setup a ssh-key
 	echo "Creating ssh-key rsa" 
 	ssh-keygen -t rsa -f /root/.ssh/id_rsa -q -N ""
 	echo "Creating Trusted Relationship between servers"
-	ssh-copy-id -p3851 -i ~/.ssh/id_rsa.pub root@minerafa.pointto.us
+	ssh-copy-id -p$TestSrvPort -i ~/.ssh/id_rsa.pub root@$TestSrvAddress
 fi
 
 Colorize 5 "Starting UDP Port tests"
@@ -174,17 +177,49 @@ for i in $(seq 5100 1 5120); do
 	Colorize 6 "Testing Port $i: \c"
 	#echo $(nc -w 3 -z -v  $(echo $WanIP | sed 's_/test__') $i &> /dev/null && echo "Online" || echo "Offline")
 	 iperf -s -p $i -u &> /dev/null &
-	if $(ssh -p3851 root@minerafa.pointto.us "iperf -c minerafa.pointto.us -u -p $i -b 10M 2> /dev/null | grep -q 'Server Report'"); then
+	if $(ssh -p$TestSrvPort root@TestSrvAddress "iperf -c $WanIP -u -p $i -b 10M 2> /dev/null | grep -q 'Server Report'"); then
 		echo "Online"
 	else
 		echo "Offline"
+		count=count+1
+		if [ count -eq 3 ]; then
+			break
+			Colorize 1 "We had too many errors on the test"
+			read -p "Press [Enter] to start the test Again"
+			testUDP
+		fi
 	fi
 done
-	killall iperf
+killall iperf
 
+TestDDNS ##Call the function to test the ddns
+}
+
+function TestDDNS(){
+##With the server perfectly operational, the next step is setting up a DDNS name for it
+	Colorize 1 "
+	Please setup a ddns address for the server or use your
+	ISP fixed IP address, your currently WAN address is: $WanIP
+	"
+	Colorize 8 "Please type your ddns address for testing: "
+	read R_DDNS
+	##Test if the DDNS is set correctly
+	if [ $R_DDNS = $WanIP ]; then
+		Colorize 2 "DDNs working correctly"
+		echo ""
+	else	
+		echo "DDNS doesn't match with the WAN Address"
+		read -p "Fix it and press [Enter] to test again "
+		TestDDNS
+	fi
+}
+
+function VerifyMongoDB() {
+	Colorize 7 "Verifying Mongo DataBase"
+	echo ""
 ##
-: <<'test'
-if [ $(mongo $BASEM --eval 'db.vpn.find({"VPN_Address": "NoADDRESS"}, {_id: 0}).limit(1).shellPrint()' | grep VPN_Address | sed -n 's/.*\(VPN_Address\).*/\1/p') ]; then
+
+if [ $(mongo $BASEM --eval 'db.vpn.find({"VPN_Address": "$R_DDNS"}, {_id: 0}).limit(1).shellPrint()' | grep VPN_Address | sed -n 's/.*\(VPN_Address\).*/\1/p') ]; then
 	Colorize 2 "Data Exists, we are ready to go"
 	echo ""
 	sleep 3
@@ -203,11 +238,10 @@ else
 			R_TUN="tun$(echo $i | sed 's/51//')"
 			R_CONIP="122.122.$(echo $i | sed 's/51//').2"
 		fi
-		mongo $BASEM --eval 'db.vpn.insert({"VPN_Address": "NoADDRESS", "Client":{"Name": "NOCLIENT","TUN": "'$R_TUN'","ConIP": "'$R_CONIP'", "Network": "'$R_NETWORK'", "Port": "'$R_PORT'"}})'
+		mongo $BASEM --eval 'db.vpn.insert({"VPN_Address": "$R_DDNS", "Client":{"Name": "NOCLIENT","TUN": "'$R_TUN'","ConIP": "'$R_CONIP'", "Network": "'$R_NETWORK'", "Port": "'$R_PORT'"}})'
 	done
-	FirstLoad
+	VerifyMongoDB
 fi
-test
 
 }
 
@@ -288,11 +322,6 @@ function SuggestParameters() {
 	fi
 	##VerifyAvailableConf
 }
-
-##################################################
-#Set the number of available ports to connect
-#
-VPN_Ports=($(seq 5100 1 5120))
 
 function VerifyAvailableConf() {
 	##################################################
