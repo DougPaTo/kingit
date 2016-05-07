@@ -181,7 +181,7 @@ for i in $(seq 5100 1 5120); do
 		echo "Online"
 	else
 		echo "Offline"
-		ERRcount=$ERRcount + 1
+		ERRcount=$(($ERRcount + 1))
 		if [ $ERRcount -gt 3 ]; then
 			break
 			Colorize 1 "We had too many errors on the test"
