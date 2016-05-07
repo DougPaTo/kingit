@@ -177,12 +177,12 @@ for i in $(seq 5100 1 5120); do
 	Colorize 6 "Testing Port $i: \c"
 	#echo $(nc -w 3 -z -v  $(echo $WanIP | sed 's_/test__') $i &> /dev/null && echo "Online" || echo "Offline")
 	 iperf -s -p $i -u &> /dev/null &
-	if $(ssh -p$TestSrvPort root@TestSrvAddress "iperf -c $WanIP -u -p $i -b 10M 2> /dev/null | grep -q 'Server Report'"); then
+	if $(ssh -p$TestSrvPort root@$TestSrvAddress "iperf -c $WanIP -u -p $i -b 10M 2> /dev/null | grep -q 'Server Report'"); then
 		echo "Online"
 	else
 		echo "Offline"
 		count=count+1
-		if [ count -eq 3 ]; then
+		if [ count -gt 3 ]; then
 			break
 			Colorize 1 "We had too many errors on the test"
 			read -p "Press [Enter] to start the test Again"
