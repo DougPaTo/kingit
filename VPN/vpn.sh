@@ -204,7 +204,7 @@ function TestDDNS(){
 	Colorize 8 "Please type your ddns address for testing: "
 	read R_DDNS
 	##Test if the DDNS is set correctly
-	if $(ping -c1 $R_DDNS | grep -q $WanIP) ; then
+	if $(ping -c1 $R_DDNS | grep -q $WanIP); then
 		Colorize 2 "DDNs working correctly"
 		echo ""
 	else	
@@ -334,7 +334,7 @@ function VerifyAvailableConf() {
 	
 	Colorize 2 "We need to know what is the address of the VPN Server [kingit.ddnsking.com]: "
 	read R_VPNSRV
-	if [ R_VPNSRV=="" ]; then
+	if [ R_VPNSRV="" ]; then
 		R_VPNSRV="kingit.ddnsking.com"
 	fi
 	CenterTitle "Available VPN Connection"
