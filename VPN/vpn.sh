@@ -184,9 +184,10 @@ for i in $(seq 5100 1 5120); do
 		Ecount=$(($Ecount + 1))
 		if [ $Ecount -gt 3 ]; then
 			Colorize 1 "We had too many errors on the test"
+			echo ""
 			read -p "Press [Enter] to start the test Again"
-			testUDP
 			killall iperf
+			testUDP
 		fi
 	fi
 done
