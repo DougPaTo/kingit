@@ -181,6 +181,7 @@ for i in $(seq 5100 1 5120); do
 	 tput sc
 	for testn in $(seq 1 10); do
 		if $(ssh -p$TestSrvPort root@$TestSrvAddress "iperf -c $WanIP -u -p $i -b 10M 2> /dev/null | grep -q 'Server Report'"); then
+			tput rc
 			echo " - Tested - $testn time - Online"
 			break
 		else
@@ -200,7 +201,6 @@ for i in $(seq 5100 1 5120); do
 done
 killall iperf
 TestDDNS ##Call the function to test the ddns
-return
 }
 
 function TestDDNS(){
@@ -215,6 +215,8 @@ function TestDDNS(){
 	if $(ping -c1 $R_DDNS | grep -q $WanIP); then
 		Colorize 2 "DDNs working correctly"
 		echo ""
+		sleep 5
+		VerifyMongoDB
 	else	
 		echo "DDNS doesn't match with the WAN Address"
 		read -p "Fix it and press [Enter] to test again "
@@ -228,10 +230,10 @@ function VerifyMongoDB() {
 ##
 
 if [ $(mongo $BASEM --eval 'db.vpn.find({"VPN_Address": "$R_DDNS"}, {_id: 0}).limit(1).shellPrint()' | grep VPN_Address | sed -n 's/.*\(VPN_Address\).*/\1/p') ]; then
-	Colorize 2 "Data Exists, we are ready to go"
+	Colorize 2 "This Server is already on the DataBase"
 	echo ""
 	sleep 3
-	SuggestParameters
+	#SuggestParameters
 else
 	Colorize 4 "Creating fist records on database..."
 	echo ""
@@ -248,7 +250,7 @@ else
 		fi
 		mongo $BASEM --eval 'db.vpn.insert({"VPN_Address": "$R_DDNS", "Client":{"Name": "NOCLIENT","TUN": "'$R_TUN'","ConIP": "'$R_CONIP'", "Network": "'$R_NETWORK'", "Port": "'$R_PORT'"}})'
 	done
-	VerifyMongoDB
+	#VerifyMongoDB
 fi
 
 }
