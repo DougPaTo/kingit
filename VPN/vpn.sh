@@ -179,7 +179,7 @@ for i in $(seq 5100 1 5120); do
 	 iperf -s -p $i -u &> /dev/null &
 	 Ecount=0
 	 tput sc
-	for testn in $(seq 1 3); do
+	for testn in $(seq 1 10); do
 		if $(ssh -p$TestSrvPort root@$TestSrvAddress "iperf -c $WanIP -u -p $i -b 10M 2> /dev/null | grep -q 'Server Report'"); then
 			echo " - Tested - $testn time - Online"
 			break
@@ -187,7 +187,8 @@ for i in $(seq 5100 1 5120); do
 			tput rc
 			Ecount=$(($Ecount + 1))
 			echo " - Tested - $testn time - Offline"
-			if [ $Ecount -gt 2 ]; then
+			sleep 2
+			if [ $Ecount -gt 9 ]; then
 				Colorize 1 "We had too many errors on the test of port $i"
 				echo ""
 				read -p "Test your internet connection and try again Press [Enter]"
