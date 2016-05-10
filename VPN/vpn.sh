@@ -158,7 +158,7 @@ testUDP ##Call the function
 
 function testUDP() {
 ##TEST UDP Connection
-Ecount=0
+
 #first you need to stabilish a trusted connection between the client and the server
 #to do this we can use one autodeploy key with the command ssh-keygen -t rsa -f /root/.ssh/id_rsa -q -N ""
 #then we need to create the trusted connection usind ssh with the command ssh-copy-id -i ~/.ssh/id_rsa.pub root@serverip_or_ddns
@@ -177,15 +177,18 @@ for i in $(seq 5100 1 5120); do
 	Colorize 6 "Testing Port $i: \c"
 	#echo $(nc -w 3 -z -v  $(echo $WanIP | sed 's_/test__') $i &> /dev/null && echo "Online" || echo "Offline")
 	 iperf -s -p $i -u &> /dev/null &
+	 Ecount=0
+	 tput sc
 	for testn in $(seq 1 3); do
 		if $(ssh -p$TestSrvPort root@$TestSrvAddress "iperf -c $WanIP -u -p $i -b 10M 2> /dev/null | grep -q 'Server Report'"); then
 			echo " - Tested - $testn time - Online"
 			break
 		else
+			tput rc
 			Ecount=$(($Ecount + 1))
 			echo " - Tested - $testn time - Offline"
 			if [ $Ecount -gt 2 ]; then
-				Colorize 1 "We had too many errors on the test"
+				Colorize 1 "We had too many errors on the test of port $i"
 				echo ""
 				read -p "Test your internet connection and try again Press [Enter]"
 				killall iperf
@@ -264,7 +267,7 @@ function SuggestParameters() {
 		R_Network="$(route -n | grep UG | tr -s ' ' | cut -d' ' -f 2 | cut -d. -f1-3).0"
 		R_Broad="$(route -n | grep UG | tr -s ' ' | cut -d' ' -f 2 | cut -d. -f1-3).255"
 		R_DNS="8.8.8.8"
-		R_FQDN="cat /etc/hostname"
+		R_FQDN="$(cat /etc/hostname)"
 		
 		echo "
 		Your Network parameters in Interface $R_Interface are:
