@@ -321,7 +321,7 @@ function SuggestParameters() {
 			Colorize 1 "Bye Bye"
 			echo ""
 			sleep 2
-			return
+			exit
 		fi
 	fi
 	##VerifyAvailableConf
