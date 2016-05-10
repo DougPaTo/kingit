@@ -63,8 +63,8 @@ source textfuncs.fnc
 BASEM=192.168.0.50/test
 BANCOM="vpn"
 R_VPNSRV="kingit.ddnsking.com"
-TestSrvPort=3851
-TestSrvAddress="minerafa.pointto.us"
+TestSrvPort=5245
+TestSrvAddress="kingit.ddnsking.com"
 #mongo $BASEM --eval 'db.getCollectionNames()' #Verify if the collection exists
 #mongo $BASEM --eval 'db.vpn.insert({"VPN_Range": "5100-5120"})'
 #mongo $BASEM --eval 'printjson(db.'$BANCOM'.find({} ,{_id: 0, "VPN_Range": 1, "Report.TotalSize": 1}).sort({"Report.StartDate":-1}).pretty().shellPrint())'	
@@ -177,23 +177,26 @@ for i in $(seq 5100 1 5120); do
 	Colorize 6 "Testing Port $i: \c"
 	#echo $(nc -w 3 -z -v  $(echo $WanIP | sed 's_/test__') $i &> /dev/null && echo "Online" || echo "Offline")
 	 iperf -s -p $i -u &> /dev/null &
-	if $(ssh -p$TestSrvPort root@$TestSrvAddress "iperf -c $WanIP -u -p $i -b 10M 2> /dev/null | grep -q 'Server Report'"); then
-		echo "Online"
-	else
-		echo "Offline"
-		Ecount=$(($Ecount + 1))
-		if [ $Ecount -gt 3 ]; then
-			Colorize 1 "We had too many errors on the test"
-			echo ""
-			read -p "Press [Enter] to start the test Again"
-			killall iperf
-			testUDP
+	for testn in $(seq 1 3); do
+		if $(ssh -p$TestSrvPort root@$TestSrvAddress "iperf -c $WanIP -u -p $i -b 10M 2> /dev/null | grep -q 'Server Report'"); then
+			echo " - Tested - $testn time - Online"
+			break
+		else
+			Ecount=$(($Ecount + 1))
+			echo " - Tested - $testn time - Offline"
+			if [ $Ecount -gt 2 ]; then
+				Colorize 1 "We had too many errors on the test"
+				echo ""
+				read -p "Test your internet connection and try again Press [Enter]"
+				killall iperf
+				exit
+			fi
 		fi
-	fi
+	done		
 done
 killall iperf
-
 TestDDNS ##Call the function to test the ddns
+return
 }
 
 function TestDDNS(){
