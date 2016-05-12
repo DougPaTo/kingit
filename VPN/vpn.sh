@@ -337,7 +337,7 @@ function SuggestParameters() {
 		Colorize 2 "Please create a name for this Host (without spaces): "
 		read R_FQDN
 		
-		if (($R_FQDN == "")); then
+		if [ $R_FQDN = "" ]; then
 			Colorize 1 "We need you to create a name for this host"
 			SuggestParameters
 		fi
