@@ -125,7 +125,8 @@ function TestMongoConnection(){
 		if [ $R_FQDN = "vpnserver" ]; then	
 			FirstLoad
 		else
-			
+			echo "Continue soon"
+			exit
 		fi
 		
 	else
