@@ -125,7 +125,7 @@ function TestMongoConnection(){
 		if [ $R_FQDN = "vpnserver" ]; then	
 			FirstLoad
 		else
-			echo "Continue soon"
+			listServerOptions
 			exit
 		fi
 		
@@ -349,7 +349,7 @@ function SuggestParameters() {
 function listServerOptions() {
 	varOpt=($(mongo $BASEM --eval 'db.vpn.find({"Client.Name": "NOCLIENT"}, {_id: 0, VPN_Address: 1}).limit(1).pretty().shellPrint()' | grep { | sed 's/{ //;s/ }//' | cut -d: -f2 | sed 's/ //g'))
 
-	Colorize 5 "These are the servers available choose one: "
+	CenterTitle "These are the servers available choose one: "
 	echo ""
 	for opt in $(seq 0 ${#varOpt[*]}); do
 		if [ ! ${varOpt[$opt]} = "" ]; then
@@ -551,5 +551,5 @@ openvpn --config ersaude.conf &
 #whatColor
 #SuggestParameters
 #VerifyAvailableConf
-listServerOptions
-#MenuVPN
+#listServerOptions
+MenuVPN
