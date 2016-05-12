@@ -120,7 +120,14 @@ function TestMongoConnection(){
 		Colorize 4 "Verifying Connection to MongoDB"
 		echo ""
 		sleep 3
-		FirstLoad
+		
+		installEssencials
+		if [ $R_FQDN = "vpnserver" ]; then	
+			FirstLoad
+		else
+			
+		fi
+		
 	else
 		Colorize 1 "Connection Fail, please check connectivity with $(echo $BASEM | sed 's_/test__')"
 		echo ""
@@ -128,19 +135,19 @@ function TestMongoConnection(){
 	fi
 }
 
-#mongo $BASEM --eval 'db.vpn.insert({"VPN_Range": "5100-5120"})'
-##Calculate the ports
-function FirstLoad() {
+function installEssencials() {
 	Colorize 3 "Instaling programs if needed"
 	echo ""
 	echo "Updating apt base"
 	apt-get update &> /dev/null
 	echo "Installing MongoDB and OpenVpn"
 	apt-get install -y mongodb-clients openvpn iperf rssh
-##Verify if there is some data there
-#Putting Fixed IP Address
-SuggestParameters ##It is for checking if there is a fixed ip address, or to setup one if it's necessary
+	SuggestParameters ##It is for checking if there is a fixed ip address, or to setup one if it's necessary
+}
 
+#mongo $BASEM --eval 'db.vpn.insert({"VPN_Range": "5100-5120"})'
+##Calculate the ports
+function FirstLoad() {
 PortStart=5100
 PortEnd=5120
 WanIP=$(dig +short myip.opendns.com @resolver1.opendns.com)
@@ -251,7 +258,7 @@ else
 			R_TUN="tun$(echo $i | sed 's/51//')"
 			R_CONIP="122.122.$(echo $i | sed 's/51//').2"
 		fi
-		mongo $BASEM --eval 'db.vpn.insert({"VPN_Address": "'$R_DDNS'it", "Client":{"Name": "NOCLIENT","TUN": "'$R_TUN'","ConIP": "'$R_CONIP'", "Network": "'$R_NETWORK'", "Port": "'$R_PORT'"}})'
+		mongo $BASEM --eval 'db.vpn.insert({"VPN_Address": "'$R_DDNS'", "Client":{"Name": "NOCLIENT","TUN": "'$R_TUN'","ConIP": "'$R_CONIP'", "Network": "'$R_NETWORK'", "Port": "'$R_PORT'"}})'
 	done
 	#VerifyMongoDB
 	#VerifyAvailableConf
@@ -337,6 +344,11 @@ function SuggestParameters() {
 	fi
 	##VerifyAvailableConf
 }
+
+function listServerOptions() {
+	echo $(mongo $BASEM --eval 'db.vpn.find({"Client.Name": "NOCLIENT"}, {_id: 0, VPN_Address: 1}).limit(1).pretty().shellPrint()' | grep { | sed 's/{ //;s/ }//')
+}
+
 
 function VerifyAvailableConf() {
 	##################################################
@@ -489,7 +501,7 @@ function MenuVPN() {
 		
 		case $R_MVPN in
 		1) echo "  VPN Server Creator"; sleep 3; tput clear; R_FQDN="vpnserver"; VerifyInternetCon ;;
-		2) echo "  VPN Client Creator"; sleep 3; tput clear; R_FQDN="vpnclient"; exit ;;
+		2) echo "  VPN Client Creator"; sleep 3; tput clear; R_FQDN="vpnclient"; VerifyInternetCon ;;
 		9) echo "  Valew Falow" ; exit;;
 		*) echo "  Please choose a valid option"; sleep 3 ; MenuVPN ;;
 	esac
