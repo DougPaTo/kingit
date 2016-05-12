@@ -65,9 +65,9 @@ source textfuncs.fnc
 #BASEM="kingit.ddnsking.com/kingit"
 BASEM=192.168.0.50/test
 BANCOM="vpn"
-R_VPNSRV="kingit.ddnsking.com"
-TestSrvPort=5245
-TestSrvAddress="kingit.ddnsking.com"
+#R_VPNSRV="kingit.ddnsking.com" 
+TestSrvPort=5245 ##Test server
+TestSrvAddress="kingit.ddnsking.com" ##Test server
 #mongo $BASEM --eval 'db.getCollectionNames()' #Verify if the collection exists
 #mongo $BASEM --eval 'db.vpn.insert({"VPN_Range": "5100-5120"})'
 #mongo $BASEM --eval 'printjson(db.'$BANCOM'.find({} ,{_id: 0, "VPN_Range": 1, "Report.TotalSize": 1}).sort({"Report.StartDate":-1}).pretty().shellPrint())'	
@@ -240,7 +240,7 @@ function VerifyMongoDB() {
 	echo ""
 ##
 
-if [ $(mongo $BASEM --eval 'db.vpn.find({"VPN_Address": "'$R_DDNS'"}, {_id: 0}).limit(1).shellPrint()' | grep VPN_Address | sed -n 's/.*\(VPN_Address\).*/\1/p') ]; then
+if [ $(mongo $BASEM --eval 'db.vpn.find({"VPN_Address": '$R_DDNS'}, {_id: 0}).limit(1).shellPrint()' | grep VPN_Address | sed -n 's/.*\(VPN_Address\).*/\1/p') ]; then
 	Colorize 2 "This Server is already on the DataBase"
 	echo ""
 	sleep 3
@@ -259,7 +259,7 @@ else
 			R_TUN="tun$(echo $i | sed 's/51//')"
 			R_CONIP="122.122.$(echo $i | sed 's/51//').2"
 		fi
-		mongo $BASEM --eval 'db.vpn.insert({"VPN_Address": "'$R_DDNS'", "Client":{"Name": "NOCLIENT","TUN": "'$R_TUN'","ConIP": "'$R_CONIP'", "Network": "'$R_NETWORK'", "Port": "'$R_PORT'"}})'
+		mongo $BASEM --eval 'db.vpn.insert({"VPN_Address": '$R_DDNS', "Client":{"Name": "NOCLIENT","TUN": '$R_TUN',"ConIP": '$R_CONIP', "Network": '$R_NETWORK', "Port": '$R_PORT'}})'
 	done
 	#VerifyMongoDB
 	#VerifyAvailableConf
@@ -288,7 +288,7 @@ fi
 
 function gettingStatic() {
 	Colorize 1 "It's Necessary to download the static.key from a trusted server, please insert the password!"
-	scp -P$TestSrvPort root@$TestSrvAddress:~/vpns/$R_FQDN/static.key ~/confs/ ##Placing static.key on the remote server
+	scp -P$TestSrvPort root@$TestSrvAddress:~/vpns/$R_VPNSRV/static.key ~/confs/ ##Placing static.key on the remote server
 }
 
 
