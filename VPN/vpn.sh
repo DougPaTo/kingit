@@ -327,6 +327,14 @@ function SuggestParameters() {
 		R_DNS="8.8.8.8"
 		#R_FQDN="vpnserver"
 		
+		Colorize 2 "Please create a name for this Host (without spaces): "
+		read R_FQDN
+		
+		if (($R_FQDN == "")); then
+			Colorize 1 "We need you to create a name for this host"
+			SuggestParameters
+		fi
+		
 		echo "
 		Suggested Parameters in Interface $R_Interface for Network are:
 		
@@ -389,6 +397,9 @@ function listServerOptions() {
 	if ((i == ${#varOpt})); then
 		echo "Please choose a valid option" ; listServerOptions
 	fi
+	if (( $R_srvC == 9 )); then
+		exit
+	fi
 }
 
 
@@ -442,6 +453,11 @@ function VerifyAvailableConf() {
 		cat confs/server/startsrv_$(echo $V_Port).sh | sed "s/$tmp_ip/$V_ConIP/g;s/server/client/" >>  confs/client/startsrv_$(echo $V_Port).sh
 		Colorize 3 "VPN Configuration for server and client done"
 		echo ""
+		##Record information on DataBase
+		Colorize 7 "Recording information on DataBase"
+		echo ""
+		mongo $BASEM --eval 'db.vpn.update({"Client.Port": '$V_Port'}, $set: {"Client.Name": "'$R_FQDN'"}'
+		echo "Data inserted sucessfully"
 		adjustPortForward
 	else
 		Colorize 3 "These are the VPNs configs in this server"
@@ -449,11 +465,6 @@ function VerifyAvailableConf() {
 		echo ${Created[@]}
 	fi
 	
-	
-:<<'Nothing'	
-	
-Nothing
-	 
 }
 
 function configServer(){
@@ -519,12 +530,6 @@ echo "secret static.key" >> $ConfFile
 #route 192.168.253.0 255.255.255.0
 
 }
-
-
-function CreateNewVPNServer() {
-	echo ""
-}
-
 
 function MenuVPN() {
 		CenterTitle "VPN Deploy System"
