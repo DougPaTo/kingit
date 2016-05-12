@@ -456,7 +456,7 @@ function VerifyAvailableConf() {
 		##Record information on DataBase
 		Colorize 7 "Recording information on DataBase"
 		echo ""
-		mongo $BASEM --eval 'db.vpn.update({"Client.Port": '$V_Port'}, $set: {"Client.Name": "'$R_FQDN'"}'
+		mongo $BASEM --eval 'db.vpn.update({"Client.Port": '$V_Port'}, {$set: {"Client.Name": "'$R_FQDN'"}})'
 		echo "Data inserted sucessfully"
 		adjustPortForward
 	else
