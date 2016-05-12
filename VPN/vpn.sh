@@ -4,8 +4,8 @@
 # Description: Install client and server and Verification of VPNs
 # Script Maintainer: Rafael
 #
-# Versão: 0.8
-# Last Updated: May 7th 2016
+# Versão: 0.9
+# Last Updated: May 10th 2016
 ##################################################
 ###### 			VPNs Matriz e Obras		   ####### 
 # 
@@ -39,6 +39,9 @@ If the Connectivity could be made, continue to the next steps.
 		
 -What we need to know
 		Client Network:
+		
+		
+On the Client instalation, we show all the options of server created and which ports are available.
 		
 TASKS
 ##################################################
@@ -229,7 +232,7 @@ function VerifyMongoDB() {
 	echo ""
 ##
 
-if [ $(mongo $BASEM --eval 'db.vpn.find({"VPN_Address": "$R_DDNS"}, {_id: 0}).limit(1).shellPrint()' | grep VPN_Address | sed -n 's/.*\(VPN_Address\).*/\1/p') ]; then
+if [ $(mongo $BASEM --eval 'db.vpn.find({"VPN_Address": "'$R_DDNS'"}, {_id: 0}).limit(1).shellPrint()' | grep VPN_Address | sed -n 's/.*\(VPN_Address\).*/\1/p') ]; then
 	Colorize 2 "This Server is already on the DataBase"
 	echo ""
 	sleep 3
@@ -248,9 +251,11 @@ else
 			R_TUN="tun$(echo $i | sed 's/51//')"
 			R_CONIP="122.122.$(echo $i | sed 's/51//').2"
 		fi
-		mongo $BASEM --eval 'db.vpn.insert({"VPN_Address": "$R_DDNS", "Client":{"Name": "NOCLIENT","TUN": "'$R_TUN'","ConIP": "'$R_CONIP'", "Network": "'$R_NETWORK'", "Port": "'$R_PORT'"}})'
+		mongo $BASEM --eval 'db.vpn.insert({"VPN_Address": "'$R_DDNS'it", "Client":{"Name": "NOCLIENT","TUN": "'$R_TUN'","ConIP": "'$R_CONIP'", "Network": "'$R_NETWORK'", "Port": "'$R_PORT'"}})'
 	done
 	#VerifyMongoDB
+	#VerifyAvailableConf
+	adjustPortForward
 fi
 
 }
