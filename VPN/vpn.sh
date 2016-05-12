@@ -122,7 +122,7 @@ function TestMongoConnection(){
 		sleep 3
 		
 		installEssencials
-		if [ $R_FQDN = "vpnserver" ]; then	
+		if [ $T_SRV = "vpnserver" ]; then	
 			FirstLoad
 		else
 			listServerOptions
@@ -553,8 +553,8 @@ function MenuVPN() {
 		read R_MVPN
 		
 		case $R_MVPN in
-		1) echo "  VPN Server Creator"; sleep 3; tput clear; R_FQDN="vpnserver"; VerifyInternetCon ;;
-		2) echo "  VPN Client Creator"; sleep 3; tput clear; R_FQDN="vpnclient"; VerifyInternetCon ;;
+		1) echo "  VPN Server Creator"; sleep 3; tput clear; T_SRV="vpnserver"; VerifyInternetCon ;;
+		2) echo "  VPN Client Creator"; sleep 3; tput clear; T_SRV="vpnclient"; VerifyInternetCon ;;
 		9) echo "  Valew Falow" ; exit;;
 		*) echo "  Please choose a valid option"; sleep 3 ; MenuVPN ;;
 	esac
