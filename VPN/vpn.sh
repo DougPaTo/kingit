@@ -347,7 +347,30 @@ function SuggestParameters() {
 }
 
 function listServerOptions() {
-	echo $(mongo $BASEM --eval 'db.vpn.find({"Client.Name": "NOCLIENT"}, {_id: 0, VPN_Address: 1}).limit(1).pretty().shellPrint()' | grep { | sed 's/{ //;s/ }//')
+	varOpt=($(mongo $BASEM --eval 'db.vpn.find({"Client.Name": "NOCLIENT"}, {_id: 0, VPN_Address: 1}).limit(1).pretty().shellPrint()' | grep { | sed 's/{ //;s/ }//' | cut -d: -f2 | sed 's/ //g'))
+
+	Colorize 5 "These are the servers available choose one: "
+	echo ""
+	for opt in $(seq 0 ${#varOpt[*]}); do
+		if [ ! ${varOpt[$opt]} = "" ]; then
+			echo "$(( $opt )). ${varOpt[$opt]}"
+		fi
+	done
+		echo "9. Exit"
+		echo ""
+	read R_srvC
+
+	for ((i = 0; i < ${#varOpt}; i++)); do
+		if [[ ${varOpt[$i]} = ${varOpt[$R_srvC]} ]]; then
+			R_VPNSRV=${varOpt[$i]}
+			VerifyAvailableConf
+			break
+		fi
+	done
+		
+	if ((i == ${#varOpt})); then
+		echo "Please choose a valid option" ; listServerOptions
+	fi
 }
 
 
@@ -356,15 +379,15 @@ function VerifyAvailableConf() {
 	#Connection to mongoDB to check available configurations
 	#
 	#mongo $BASEM --eval 'db.vpn.find({"Client.Name": "NOCLIENT"}, {_id: 0, "Client.TUN": 1}).limit(1).shellPrint()'
-	V_Port=$(mongo $BASEM --eval 'db.vpn.find({"Client.Name": "NOCLIENT"}, {_id: 0}).limit(1).pretty().shellPrint()' | grep "Port" | cut -d: -f2 | sed 's/^ //;s/"//g;s/,//')
-	V_Tun=$(mongo $BASEM --eval 'db.vpn.find({"Client.Name": "NOCLIENT"}, {_id: 0}).limit(1).pretty().shellPrint()' | grep "TUN" | cut -d: -f2 | sed 's/^ //;s/"//g;s/,//')
-	V_ConIP=$(mongo $BASEM --eval 'db.vpn.find({"Client.Name": "NOCLIENT"}, {_id: 0}).limit(1).pretty().shellPrint()' | grep "ConIP" | cut -d: -f2 | sed 's/^ //;s/"//g;s/,//')
+	V_Port=$(mongo $BASEM --eval 'db.vpn.find({"VPN_Address": '$R_VPNSRV'}, {_id: 0}).limit(1).pretty().shellPrint()' | grep "Port" | cut -d: -f2 | sed 's/^ //;s/"//g;s/,//')
+	V_Tun=$(mongo $BASEM --eval 'db.vpn.find({"VPN_Address": '$R_VPNSRV'}, {_id: 0}).limit(1).pretty().shellPrint()' | grep "TUN" | cut -d: -f2 | sed 's/^ //;s/"//g;s/,//')
+	V_ConIP=$(mongo $BASEM --eval 'db.vpn.find({"VPN_Address": '$R_VPNSRV'}, {_id: 0}).limit(1).pretty().shellPrint()' | grep "ConIP" | cut -d: -f2 | sed 's/^ //;s/"//g;s/,//')
 	
-	Colorize 2 "We need to know what is the address of the VPN Server [kingit.ddnsking.com]: "
-	read R_VPNSRV
-	if [ R_VPNSRV="" ]; then
-		R_VPNSRV="kingit.ddnsking.com"
-	fi
+	#Colorize 2 "We need to know what is the address of the VPN Server [kingit.ddnsking.com]: "
+	#read R_VPNSRV
+	#if [ R_VPNSRV="" ]; then
+	#	R_VPNSRV="kingit.ddnsking.com"
+	#fi
 	CenterTitle "Available VPN Connection"
 	Colorize 6 "
 	
@@ -374,9 +397,6 @@ function VerifyAvailableConf() {
 	Connection IP: $V_ConIP
 	Network: $R_Network
 	Subnet Mask: $R_Mask
-	
-	
-	Any other needed information are going to be taken from the system.
 	
 	"
 	read -p " Press [Enter] to continue"
@@ -404,6 +424,7 @@ function VerifyAvailableConf() {
 		cat confs/server/startsrv_$(echo $V_Port).sh | sed "s/$tmp_ip/$V_ConIP/g;s/server/client/" >>  confs/client/startsrv_$(echo $V_Port).sh
 		Colorize 3 "VPN Configuration for server and client done"
 		echo ""
+		adjustPortForward
 	else
 		Colorize 3 "These are the VPNs configs in this server"
 		echo ""
@@ -530,4 +551,5 @@ openvpn --config ersaude.conf &
 #whatColor
 #SuggestParameters
 #VerifyAvailableConf
-MenuVPN
+listServerOptions
+#MenuVPN
