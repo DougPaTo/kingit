@@ -264,9 +264,27 @@ else
 	#VerifyMongoDB
 	#VerifyAvailableConf
 	adjustPortForward
+	Colorize 5 "Verifying static.key"
+	echo ""
+	if [ ! -f confs/static.key ]; then
+		if [ ! -d confs ]; then
+			echo "Any directories found, lets create then..."
+			sleep 2
+			mkdir -p confs/server
+			mkdir -p confs/client
+		fi
+		cd confs/
+		openvpn --genkey --secret static.key
+		cd 
+		echo "Static.key created, your server are ready to go!"
+	else
+		echo "Static.key already created for this server"
+	fi
 fi
 
 }
+
+
 
 function SuggestParameters() {
 ##################################################
@@ -417,7 +435,7 @@ function VerifyAvailableConf() {
 		configServer
 		configClient
 		#Adjusting Client configs to be server configs
-		cat confs/client/acesso_$V_Port.conf | sed 's/remote.*//;/^$/d' >> confs/server/acesso_$(echo $V_Port).conf
+		cat confs/client/acesso_$V_Port.conf | sed 's/remote.*//;/^$/d;s/ifconfig.*/ifconfig $(echo $V_ConIP | sed 's/.$/1/') $V_ConIP/' >> confs/server/acesso_$(echo $V_Port).conf
 		tmp_ip=$(echo $V_ConIP | sed 's/.$/1/')
 		#echo $tmp_ip
 		#echo $V_ConIP
