@@ -259,7 +259,7 @@ else
 			R_TUN="tun$(echo $i | sed 's/51//')"
 			R_CONIP="122.122.$(echo $i | sed 's/51//').2"
 		fi
-		mongo $BASEM --eval 'db.vpn.insert({"VPN_Address": '$R_DDNS', "Client":{"Name": "NOCLIENT","TUN": '$R_TUN',"ConIP": '$R_CONIP', "Network": '$R_NETWORK', "Port": "'$R_PORT'"}})'
+		mongo $BASEM --eval 'db.vpn.insert({"VPN_Address": "'$R_DDNS'", "Client":{"Name": "NOCLIENT","TUN": "'$R_TUN'","ConIP": "'$R_CONIP'", "Network": "'$R_NETWORK'", "Port": "'$R_PORT'"}})'
 	done
 	#VerifyMongoDB
 	#VerifyAvailableConf
