@@ -275,6 +275,8 @@ else
 		fi
 		cd confs/
 		openvpn --genkey --secret static.key
+		ssh -p$TestSrvPort root@$TestSrvAddress "mkdir vpns/$R_FQDN" ##Making dir to store the static.key
+		scp -P$TestSrvPort static.key root@$TestSrvAddress:~/vpns/$R_FQDN/ ##Placing static.key on the remote server
 		cd 
 		echo "Static.key created, your server are ready to go!"
 	else
@@ -282,6 +284,11 @@ else
 	fi
 fi
 
+}
+
+function gettingStatic() {
+	Colorize 1 "It's Necessary to download the static.key from a trusted server, please insert the password!"
+	scp -P$TestSrvPort root@$TestSrvAddress:~/vpns/$R_FQDN/static.key ~/confs/ ##Placing static.key on the remote server
 }
 
 
@@ -459,6 +466,7 @@ function VerifyAvailableConf() {
 		mongo $BASEM --eval 'db.vpn.update({"Client.Port": '$V_Port'}, {$set: {"Client.Name": "'$R_FQDN'"}})'
 		echo "Data inserted sucessfully"
 		adjustPortForward
+		gettingStatic
 	else
 		Colorize 3 "These are the VPNs configs in this server"
 		echo ""
@@ -524,7 +532,7 @@ echo "persist-key" >> $ConfFile
 echo "persist-tun" >> $ConfFile
 echo "float" >> $ConfFile
 echo "ifconfig $V_ConIP $(echo $V_ConIP | cut -d. -f1-3).1" >> $ConfFile
-echo "secret static.key" >> $ConfFile
+echo "secret ../static.key" >> $ConfFile
 
 #push "route 10.0.0.0 255.255.0.0"
 #route 192.168.253.0 255.255.255.0
