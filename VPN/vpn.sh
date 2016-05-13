@@ -302,7 +302,7 @@ function gettingStatic() {
 }
 
 function sendServerConfs() {
-	Colorize 3 "It's time to sendo the confs to the server, please insert the password!"
+	Colorize 3 "It's time to send the confs to the server, please insert the password!"
 	echo""
 	scp -P5100 ~/confs/server/* root@$R_VPNSRV:~/confs/server/ ##Placing static.key on the remote server
 }
@@ -464,13 +464,13 @@ function VerifyAvailableConf() {
 	echo "Directories Created, Lets check if we have any VPN created there."
 	sleep 2
 	Created=($(ls confs/server/))
-	if [ -z ${Created[@]} ] ;then
+	if [ ${#Created[@]} -lt 1 ] ;then
 		echo "Any VPNs Created"
 		read -p "Press [Enter] to create the the configuration for Port $V_Port here"
 		configServer
 		configClient
 		#Adjusting Client configs to be server configs
-		cat confs/client/acesso_$(echo $V_Port).conf | sed 's/remote.*//;/^$/d;s/ifconfig.*/ifconfig $(echo $V_ConIP | sed "s/.$/1/") $V_ConIP/' >> confs/server/acesso_$(echo $V_Port).conf
+		cat confs/client/acesso_$V_Port.conf | sed 's/remote.*//;/^$/d;s/ifconfig.*/ifconfig $(echo $V_ConIP | sed "s/.$/1/") $V_ConIP/' >> confs/client/acesso_$V_Port.conf
 		tmp_ip=$(echo $V_ConIP | sed 's/.$/1/')
 		#echo $tmp_ip
 		#echo $V_ConIP
