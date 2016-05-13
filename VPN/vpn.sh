@@ -286,6 +286,9 @@ else
 		scp -P$TestSrvPort static.key root@$TestSrvAddress:~/vpns/$R_DDNS/ ##Placing static.key on the remote server
 		cd 
 		echo "Static.key created, your server are ready to go!"
+		Colorize 2 "Server restarting in 15 seconds"
+		sleep 15
+		reboot
 	else
 		echo "Static.key already created for this server"
 	fi
@@ -304,11 +307,7 @@ function gettingStatic() {
 function sendServerConfs() {
 	Colorize 3 "It's time to send the confs to the server, please insert the password!" 
 	echo""
-	read -p "Press [Enter] to continue"
 	scp -P5100 /root/confs/server/* root@$R_VPNSRV:/root/confs/server/ 
-	if $(ssh -p5100 root@$R_VPNSRV "ls confs/server/" | grep -q server);then
-		sendServerConfs
-	fi
 }
 
 
@@ -489,6 +488,9 @@ function VerifyAvailableConf() {
 		adjustPortForward
 		gettingStatic
 		sendServerConfs
+		Colorize 2 "Server Completely Ready, restarting in 15 seconds"
+		sleep 15
+		reboot
 	else
 		Colorize 3 "These are the VPNs configs in this server"
 		echo ""
