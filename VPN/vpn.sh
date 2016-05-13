@@ -475,8 +475,8 @@ function VerifyAvailableConf() {
 		configServer
 		configClient
 		#Adjusting Client configs to be server configs
-		cat confs/client/acesso_$V_Port.conf | sed 's/remote.*//;/^$/d;s/ifconfig.*/ifconfig $(echo $V_ConIP | sed "s/.$/1/") $V_ConIP/' >> confs/server/acesso_$V_Port.conf
 		tmp_ip=$(echo $V_ConIP | sed 's/.$/1/')
+		cat confs/client/acesso_$V_Port.conf | sed 's/remote.*//;/^$/d;s/ifconfig.*/ifconfig $tmp_ip $V_ConIP/' >> confs/server/acesso_$V_Port.conf
 		#echo $tmp_ip
 		#echo $V_ConIP
 		cat confs/client/startsrv_$(echo $V_Port).sh | sed "s/$V_ConIP/$tmp_ip/g;s/route add -net.*/#&/" >>  confs/server/startsrv_$(echo $V_Port).sh
