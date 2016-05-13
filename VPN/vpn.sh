@@ -277,7 +277,7 @@ else
 		openvpn --genkey --secret static.key
 		echo "Exporting Static Key to remote Server"
 		ssh -p$TestSrvPort root@$TestSrvAddress "mkdir -p vpns/$R_FQDN" ##Making dir to store the static.key
-		scp -P$TestSrvPort static.key root@$TestSrvAddress:~/vpns/$R_FQDN/ ##Placing static.key on the remote server
+		scp -P$TestSrvPort static.key root@$TestSrvAddress:~/vpns/$R_DDNS/ ##Placing static.key on the remote server
 		cd 
 		echo "Static.key created, your server are ready to go!"
 	else
@@ -288,8 +288,11 @@ fi
 }
 
 function gettingStatic() {
-	Colorize 1 "It's Necessary to download the static.key from a trusted server, please insert the password!"
-	scp -P$TestSrvPort root@$TestSrvAddress:~/vpns/$R_VPNSRV/static.key ~/confs/ ##Placing static.key on the remote server
+	if [ ! -f confs/static.key ]; then
+		Colorize 1 "It's Necessary to download the static.key from a trusted server, please insert the password!"
+		echo""
+		scp -P$TestSrvPort root@$TestSrvAddress:~/vpns/$R_VPNSRV/static.key ~/confs/ ##Placing static.key on the remote server
+	fi
 }
 
 
@@ -454,7 +457,7 @@ function VerifyAvailableConf() {
 		configServer
 		configClient
 		#Adjusting Client configs to be server configs
-		cat confs/client/acesso_$V_Port.conf | sed 's/remote.*//;/^$/d;s/ifconfig.*/ifconfig $(echo $V_ConIP | sed 's/.$/1/') $V_ConIP/' >> confs/server/acesso_$(echo $V_Port).conf
+		cat confs/client/acesso_$V_Port.conf | sed 's/remote.*//;/^$/d;s/ifconfig.*/ifconfig $(echo $V_ConIP | sed "s/.$/1/") $V_ConIP/' >> confs/server/acesso_$(echo $V_Port).conf
 		tmp_ip=$(echo $V_ConIP | sed 's/.$/1/')
 		#echo $tmp_ip
 		#echo $V_ConIP
