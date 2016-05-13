@@ -305,7 +305,7 @@ function sendServerConfs() {
 	Colorize 3 "It's time to send the confs to the server, please insert the password!" 
 	echo""
 	read -p "Press [Enter] to continue"
-	scp -P5100 ~/confs/server/* root@$R_VPNSRV:~/confs/server/ 
+	scp -P5100 /root/confs/server/* root@$R_VPNSRV:/root/confs/server/ 
 	if [ ssh -p5100 root@$R_VPNSRV "ls confs/server/" = "" ];then
 		sendServerConfs
 	fi
