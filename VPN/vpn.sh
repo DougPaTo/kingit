@@ -12,11 +12,14 @@
 
 
 #address to download the code: wget https://goo.gl/4sS4FU -O vpn.sh
-## O que precisa ser feito
-## Cadastrar Clientes
-## Atribuir portas e listar portas disponiveis
-## exportar configuracao - .conf - firewall e static.key
-## testar conectividade e exibir configuracoes para clientes.
+: << 'Howto'
+You need to open the range os ports from 5100 to 5120 all UDP on your router
+pointing to the ip ending in 16 for the server side, and the port 5100 TCP 
+pointing to the same address
+
+On the client side nothing is needed
+
+Howto
 		
 ##################################################
 #Include source file with text functions
