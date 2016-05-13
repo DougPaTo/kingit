@@ -249,7 +249,8 @@ else
 	Colorize 4 "Creating fist records on database..."
 	echo ""
 	sleep 5 
-	R_NETWORK="0.0.0.0/24"
+	R_NETWORK="0.0.0.0"
+	R_MASK="255.255.255.0"
 	for i in $(seq $PortStart 1 $PortEnd);do
 		R_PORT=$i
 		if [ $i -lt 5110 ]; then
@@ -259,7 +260,7 @@ else
 			R_TUN="tun$(echo $i | sed 's/51//')"
 			R_CONIP="122.122.$(echo $i | sed 's/51//').2"
 		fi
-		mongo $BASEM --eval 'db.vpn.insert({"VPN_Address": "'$R_DDNS'", "ServerNetwork": "'$R_Network'", "ServerMask": "'$R_Mask'", "Client":{"Name": "NOCLIENT","TUN": "'$R_TUN'","ConIP": "'$R_CONIP'", "Network": "'$R_NETWORK'", "Port": "'$R_PORT'"}})'
+		mongo $BASEM --eval 'db.vpn.insert({"VPN_Address": "'$R_DDNS'", "ServerNetwork": "'$R_Network'", "ServerMask": "'$R_Mask'", "Client":{"Name": "NOCLIENT","TUN": "'$R_TUN'","ConIP": "'$R_CONIP'", "Network": "'$R_NETWORK'", "Mask": "'$R_MASK'", "Port": "'$R_PORT'"}})'
 	done
 	#VerifyMongoDB
 	#VerifyAvailableConf
@@ -307,7 +308,8 @@ function gettingStatic() {
 function sendServerConfs() {
 	Colorize 3 "It's time to send the confs to the server, please insert the password!" 
 	echo""
-	scp -P5100 /root/confs/server/* root@$R_VPNSRV:/root/confs/server/ 
+	cd confs/server
+	scp -P5100 * root@$R_VPNSRV:/root/confs/server/ 
 }
 
 
@@ -483,7 +485,7 @@ function VerifyAvailableConf() {
 		##Record information on DataBase
 		Colorize 7 "Recording information on DataBase"
 		echo ""
-		mongo $BASEM --eval 'db.vpn.update({"Client.Port": "'$V_Port'"}, {$set: {"Client.Name": "'$R_FQDN'", "Client.Network": "'$R_Network'"}})'
+		mongo $BASEM --eval 'db.vpn.update({"Client.Port": "'$V_Port'"}, {$set: {"Client.Name": "'$R_FQDN'", "Client.Network": "'$R_Network'", "Client.Mask": "'$R_Mask'"}})'
 		echo "Data inserted sucessfully"
 		adjustPortForward
 		gettingStatic
