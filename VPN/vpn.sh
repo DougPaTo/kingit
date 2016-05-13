@@ -302,9 +302,10 @@ function gettingStatic() {
 }
 
 function sendServerConfs() {
-	Colorize 3 "It's time to send the confs to the server, please insert the password!"
+	Colorize 3 "It's time to send the confs to the server, please insert the password!" 
 	echo""
-	scp -P5100 ~/confs/server/* root@$(echo $R_VPNSRV | sed 's/"//g'):~/confs/server/ ##Placing static.key on the remote server
+	read -p "Press [Enter] to continue"
+	scp -P5100 ~/confs/server/* root@$R_VPNSRV:~/confs/server/ 
 }
 
 
