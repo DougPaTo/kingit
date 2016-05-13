@@ -306,7 +306,7 @@ function sendServerConfs() {
 	echo""
 	read -p "Press [Enter] to continue"
 	scp -P5100 /root/confs/server/* root@$R_VPNSRV:/root/confs/server/ 
-	if [ ssh -p5100 root@$R_VPNSRV "ls confs/server/" = "" ];then
+	if $(ssh -p5100 root@$R_VPNSRV "ls confs/server/" | grep -q server);then
 		sendServerConfs
 	fi
 }
