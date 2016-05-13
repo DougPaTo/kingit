@@ -411,11 +411,11 @@ function VerifyAvailableConf() {
 	#Connection to mongoDB to check available configurations
 	#
 	#mongo $BASEM --eval 'db.vpn.find({"Client.Name": "NOCLIENT"}, {_id: 0, "Client.TUN": 1}).limit(1).shellPrint()'
-	V_Port=$(mongo $BASEM --eval 'db.vpn.find({"VPN_Address": "'$R_VPNSRV'"}, {_id: 0}).limit(1).pretty().shellPrint()' | grep "Port" | cut -d: -f2 | sed 's/^ //;s/"//g;s/,//')
-	V_Tun=$(mongo $BASEM --eval 'db.vpn.find({"VPN_Address": "'$R_VPNSRV'"}, {_id: 0}).limit(1).pretty().shellPrint()' | grep "TUN" | cut -d: -f2 | sed 's/^ //;s/"//g;s/,//')
-	V_ConIP=$(mongo $BASEM --eval 'db.vpn.find({"VPN_Address": "'$R_VPNSRV'"}, {_id: 0}).limit(1).pretty().shellPrint()' | grep "ConIP" | cut -d: -f2 | sed 's/^ //;s/"//g;s/,//')
-	V_SNet=$(mongo $BASEM --eval 'db.vpn.find({"VPN_Address": "'$R_VPNSRV'"}, {_id: 0}).limit(1).pretty().shellPrint()' | grep "ServerNetwork" | cut -d: -f2 | sed 's/^ //;s/"//g;s/,//')
-	V_SMask=$(mongo $BASEM --eval 'db.vpn.find({"VPN_Address": "'$R_VPNSRV'"}, {_id: 0}).limit(1).pretty().shellPrint()' | grep "ServerMask" | cut -d: -f2 | sed 's/^ //;s/"//g;s/,//')
+	V_Port=$(mongo $BASEM --eval 'db.vpn.find({"VPN_Address": "'$R_VPNSRV'", "Client.Name": "NOCLIENT"}, {_id: 0}).limit(1).pretty().shellPrint()' | grep "Port" | cut -d: -f2 | sed 's/^ //;s/"//g;s/,//')
+	V_Tun=$(mongo $BASEM --eval 'db.vpn.find({"VPN_Address": "'$R_VPNSRV'", "Client.Name": "NOCLIENT"}, {_id: 0}).limit(1).pretty().shellPrint()' | grep "TUN" | cut -d: -f2 | sed 's/^ //;s/"//g;s/,//')
+	V_ConIP=$(mongo $BASEM --eval 'db.vpn.find({"VPN_Address": "'$R_VPNSRV'", "Client.Name": "NOCLIENT"}, {_id: 0}).limit(1).pretty().shellPrint()' | grep "ConIP" | cut -d: -f2 | sed 's/^ //;s/"//g;s/,//')
+	V_SNet=$(mongo $BASEM --eval 'db.vpn.find({"VPN_Address": "'$R_VPNSRV'", "Client.Name": "NOCLIENT"}, {_id: 0}).limit(1).pretty().shellPrint()' | grep "ServerNetwork" | cut -d: -f2 | sed 's/^ //;s/"//g;s/,//')
+	V_SMask=$(mongo $BASEM --eval 'db.vpn.find({"VPN_Address": "'$R_VPNSRV'", "Client.Name": "NOCLIENT"}, {_id: 0}).limit(1).pretty().shellPrint()' | grep "ServerMask" | cut -d: -f2 | sed 's/^ //;s/"//g;s/,//')
 	
 	#Colorize 2 "We need to know what is the address of the VPN Server [kingit.ddnsking.com]: "
 	#read R_VPNSRV
