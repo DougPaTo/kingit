@@ -259,7 +259,7 @@ else
 			R_TUN="tun$(echo $i | sed 's/51//')"
 			R_CONIP="122.122.$(echo $i | sed 's/51//').2"
 		fi
-		mongo $BASEM --eval 'db.vpn.insert({"VPN_Address": "'$R_DDNS'", "Client":{"Name": "NOCLIENT","TUN": "'$R_TUN'","ConIP": "'$R_CONIP'", "Network": "'$R_NETWORK'", "Port": "'$R_PORT'"}})'
+		mongo $BASEM --eval 'db.vpn.insert({"VPN_Address": "'$R_DDNS'", "ServerNetwork": "'$R_Network'", "ServerMask": "'$R_Mask'", "Client":{"Name": "NOCLIENT","TUN": "'$R_TUN'","ConIP": "'$R_CONIP'", "Network": "'$R_NETWORK'", "Port": "'$R_PORT'"}})'
 	done
 	#VerifyMongoDB
 	#VerifyAvailableConf
@@ -433,6 +433,8 @@ function VerifyAvailableConf() {
 	V_Port=$(mongo $BASEM --eval 'db.vpn.find({"VPN_Address": '$R_VPNSRV'}, {_id: 0}).limit(1).pretty().shellPrint()' | grep "Port" | cut -d: -f2 | sed 's/^ //;s/"//g;s/,//')
 	V_Tun=$(mongo $BASEM --eval 'db.vpn.find({"VPN_Address": '$R_VPNSRV'}, {_id: 0}).limit(1).pretty().shellPrint()' | grep "TUN" | cut -d: -f2 | sed 's/^ //;s/"//g;s/,//')
 	V_ConIP=$(mongo $BASEM --eval 'db.vpn.find({"VPN_Address": '$R_VPNSRV'}, {_id: 0}).limit(1).pretty().shellPrint()' | grep "ConIP" | cut -d: -f2 | sed 's/^ //;s/"//g;s/,//')
+	V_SNet=$(mongo $BASEM --eval 'db.vpn.find({"VPN_Address": '$R_VPNSRV'}, {_id: 0}).limit(1).pretty().shellPrint()' | grep "ServerNetwork" | cut -d: -f2 | sed 's/^ //;s/"//g;s/,//')
+	V_SMask=$(mongo $BASEM --eval 'db.vpn.find({"VPN_Address": '$R_VPNSRV'}, {_id: 0}).limit(1).pretty().shellPrint()' | grep "ServerMask" | cut -d: -f2 | sed 's/^ //;s/"//g;s/,//')
 	
 	#Colorize 2 "We need to know what is the address of the VPN Server [kingit.ddnsking.com]: "
 	#read R_VPNSRV
@@ -468,17 +470,17 @@ function VerifyAvailableConf() {
 		configServer
 		configClient
 		#Adjusting Client configs to be server configs
-		cat confs/client/acesso_$V_Port.conf | sed 's/remote.*//;/^$/d;s/ifconfig.*/ifconfig $(echo $V_ConIP | sed "s/.$/1/") $V_ConIP/' >> confs/server/acesso_$(echo $V_Port).conf
+		cat confs/client/acesso_$(echo $V_Port).conf | sed 's/remote.*//;/^$/d;s/ifconfig.*/ifconfig $(echo $V_ConIP | sed "s/.$/1/") $V_ConIP/' >> confs/server/acesso_$(echo $V_Port).conf
 		tmp_ip=$(echo $V_ConIP | sed 's/.$/1/')
 		#echo $tmp_ip
 		#echo $V_ConIP
-		cat confs/server/startsrv_$(echo $V_Port).sh | sed "s/$tmp_ip/$V_ConIP/g;s/server/client/" >>  confs/client/startsrv_$(echo $V_Port).sh
+		cat confs/client/startsrv_$(echo $V_Port).sh | sed "s/$V_ConIP/$tmp_ip/g;s/route add -net.*/#&/" >>  confs/server/startsrv_$(echo $V_Port).sh
 		Colorize 3 "VPN Configuration for server and client done"
 		echo ""
 		##Record information on DataBase
 		Colorize 7 "Recording information on DataBase"
 		echo ""
-		mongo $BASEM --eval 'db.vpn.update({"Client.Port": "'$V_Port'"}, {$set: {"Client.Name": "'$R_FQDN'"}})'
+		mongo $BASEM --eval 'db.vpn.update({"Client.Port": "'$V_Port'"}, {$set: {"Client.Name": "'$R_FQDN'", "Client.Network": "'$R_Network'"}})'
 		echo "Data inserted sucessfully"
 		adjustPortForward
 		gettingStatic
@@ -492,13 +494,13 @@ function VerifyAvailableConf() {
 }
 
 function configServer(){
-TunFile=confs/server/startsrv_$V_Port.sh
+TunFile=confs/client/startsrv_$V_Port.sh
 
 ## Criar as interfaces
 echo "openvpn --mktun --dev $V_Tun" >> $TunFile
 
 #Definindo IP da interface 
-echo "ifconfig $V_Tun $(echo $V_ConIP | sed 's/.$/1/') netmask 255.255.255.0 promisc up" >> $TunFile
+echo "ifconfig $V_Tun $V_ConIP netmask 255.255.255.0 promisc up" >> $TunFile
 
 #Abrir firewall para tun0
 echo "iptables -t nat -A POSTROUTING -j MASQUERADE" >> $TunFile
@@ -509,11 +511,11 @@ echo "iptables -I FORWARD -i $V_Tun -o eth0 -j ACCEPT" >> $TunFile
 echo "sleep 5" >> $TunFile
 #route add -net 10.0.0.0 netmask 255.255.0.0 gw 10.5.76.16 #- Linux
 #route -p add 10.0.99.198 mask 255.255.255.255 10.5.76.16 - Windows
-echo "openvpn --config conf/server/acesso_$(echo $V_Port).conf &" >> $TunFile
+echo "openvpn --config acesso_$(echo $V_Port).conf &" >> $TunFile
 
 echo "sleep 5" >> $TunFile
 #Criando rotas para a Obra
-echo "route add -net $R_Network netmask $R_Mask gw $(echo $V_ConIP | sed 's/.$/1/') dev $V_Tun" >> $TunFile
+echo "route add -net $V_SNet netmask $V_SMask gw $(echo $V_ConIP | sed 's/.$/1/') dev $V_Tun" >> $TunFile
 #route add -net 10.5.63.0 netmask 255.255.255.0 gw 10.3.0.2 #Este sera o novo padrao da obra
 
 #Importante sysctl.conf
