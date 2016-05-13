@@ -1,11 +1,11 @@
 #!/bin/bash
 ##################################################
 # Name: vpn.sh
-# Description: Install client and server and Verification of VPNs
+# Description: Install client and server VPNs
 # Script Maintainer: Rafael
 #
-# Versão: 0.9
-# Last Updated: May 10th 2016
+# Versão: 1.0
+# Last Updated: May 13th 2016
 ##################################################
 ###### 			VPNs Matriz e Obras		   ####### 
 # 
