@@ -273,6 +273,12 @@ else
 			mkdir -p confs/server
 			mkdir -p confs/client
 		fi
+		Colorize 2 "Adjustments on RSSH, changing port to 5100"
+		echo ""
+		sleep 2
+		sed -i "s/^Port 22/Port 5100/;s/^PermitRootLogin/#&/" /etc/ssh/sshd_config
+		/etc/init.d/ssh restart
+		
 		cd confs/
 		openvpn --genkey --secret static.key
 		echo "Exporting Static Key to remote Server"
@@ -295,6 +301,11 @@ function gettingStatic() {
 	fi
 }
 
+function sendServerConfs() {
+	Colorize 3 "It's time to sendo the confs to the server, please insert the password!"
+	echo""
+	scp -P5100 ~/confs/server/* root@$R_VPNSRV:~/confs/server/ ##Placing static.key on the remote server
+}
 
 
 function SuggestParameters() {
@@ -471,6 +482,7 @@ function VerifyAvailableConf() {
 		echo "Data inserted sucessfully"
 		adjustPortForward
 		gettingStatic
+		sendServerConfs
 	else
 		Colorize 3 "These are the VPNs configs in this server"
 		echo ""
