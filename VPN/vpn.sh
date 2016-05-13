@@ -473,7 +473,7 @@ function VerifyAvailableConf() {
 		configServer
 		configClient
 		#Adjusting Client configs to be server configs
-		cat confs/client/acesso_$V_Port.conf | sed 's/remote.*//;/^$/d;s/ifconfig.*/ifconfig $(echo $V_ConIP | sed "s/.$/1/") $V_ConIP/' >> confs/client/acesso_$V_Port.conf
+		cat confs/client/acesso_$V_Port.conf | sed 's/remote.*//;/^$/d;s/ifconfig.*/ifconfig $(echo $V_ConIP | sed "s/.$/1/") $V_ConIP/' >> confs/server/acesso_$V_Port.conf
 		tmp_ip=$(echo $V_ConIP | sed 's/.$/1/')
 		#echo $tmp_ip
 		#echo $V_ConIP
