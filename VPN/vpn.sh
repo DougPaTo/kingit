@@ -275,7 +275,8 @@ else
 		fi
 		cd confs/
 		openvpn --genkey --secret static.key
-		ssh -p$TestSrvPort root@$TestSrvAddress "mkdir vpns/$R_FQDN" ##Making dir to store the static.key
+		echo "Exporting Static Key to remote Server"
+		ssh -p$TestSrvPort root@$TestSrvAddress "mkdir -p vpns/$R_FQDN" ##Making dir to store the static.key
 		scp -P$TestSrvPort static.key root@$TestSrvAddress:~/vpns/$R_FQDN/ ##Placing static.key on the remote server
 		cd 
 		echo "Static.key created, your server are ready to go!"
