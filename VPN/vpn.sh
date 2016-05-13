@@ -90,7 +90,7 @@ function VerifyInternetCon(){
 function TestMongoConnection(){
 	Colorize 4 "Trying to connect to MongoDB port on $BASEM"
 	echo ""
-	if [ $(nc -w 3 -z -v $(echo $BASEM | sed 's_/test__') 27017 &> /dev/null && echo "Online" || echo "Offline") = "Online" ] ; then
+	if [ $(nc -w 3 -z -v $(echo $BASEM | sed 's_/.*__') 27017 &> /dev/null && echo "Online" || echo "Offline") = "Online" ] ; then
 		Colorize 2 "Connected and Working"
 		echo ""
 		Colorize 4 "Verifying Connection to MongoDB"
