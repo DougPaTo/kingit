@@ -401,7 +401,7 @@ function SuggestParameters() {
 }
 
 function listServerOptions() {
-	varOpt=("$(mongo $BASEM --eval 'db.vpn.find({"Client.Name": "NOCLIENT"}, {_id: 0, VPN_Address: 1}).limit(1).pretty().shellPrint()' | grep { | sed 's/{ //;s/ }//' | cut -d: -f2 | sed 's/ //g')")
+	varOpt=($(mongo $BASEM --eval 'db.vpn.find({"Client.Name": "NOCLIENT"}, {_id: 0, VPN_Address: 1}).limit(1).pretty().shellPrint()' | grep { | sed 's/{ //;s/ }//' | cut -d: -f2 | sed 's/ //g;s/"//g;s/,//'))
 
 	CenterTitle "These are the servers available choose one: "
 	echo ""
@@ -441,7 +441,7 @@ function VerifyAvailableConf() {
 	V_ConIP=$(mongo $BASEM --eval 'db.vpn.find({"VPN_Address": '$R_VPNSRV'}, {_id: 0}).limit(1).pretty().shellPrint()' | grep "ConIP" | cut -d: -f2 | sed 's/^ //;s/"//g;s/,//')
 	V_SNet=$(mongo $BASEM --eval 'db.vpn.find({"VPN_Address": '$R_VPNSRV'}, {_id: 0}).limit(1).pretty().shellPrint()' | grep "ServerNetwork" | cut -d: -f2 | sed 's/^ //;s/"//g;s/,//')
 	V_SMask=$(mongo $BASEM --eval 'db.vpn.find({"VPN_Address": '$R_VPNSRV'}, {_id: 0}).limit(1).pretty().shellPrint()' | grep "ServerMask" | cut -d: -f2 | sed 's/^ //;s/"//g;s/,//')
-	R_VPNSRV=$(mongo $BASEM --eval 'db.vpn.find({"Client.Port": "'$V_Port'"}, {_id: 0}).limit(1).pretty().shellPrint()' | grep "VPN_Address" | cut -d: -f2 | sed 's/^ //;s/"//g;s/,//')
+	#R_VPNSRV=$(mongo $BASEM --eval 'db.vpn.find({"Client.Port": "'$V_Port'"}, {_id: 0}).limit(1).pretty().shellPrint()' | grep "VPN_Address" | cut -d: -f2 | sed 's/^ //;s/"//g;s/,//')
 	
 	#Colorize 2 "We need to know what is the address of the VPN Server [kingit.ddnsking.com]: "
 	#read R_VPNSRV
