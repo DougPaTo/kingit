@@ -17,33 +17,7 @@
 ## Atribuir portas e listar portas disponiveis
 ## exportar configuracao - .conf - firewall e static.key
 ## testar conectividade e exibir configuracoes para clientes.
-
-
-## Start Connectivity test
-: << 'TASKS'
-Verify Internet Connection
-	Wait Until we verify the Internet Connection
-Check DataBase Mongo to know about the ports available
-	Trying to connect to the DataBase Centre
-	Bring the information to the screen
-	Select the last UDP Port Available to Connection and ask for confirmation
-Test the UDP port Selected - netstat -t -u -p -l -e -n 
-	nmap -p T:<PORT> kingit.ddnsking.com
-	If there is no connectivity, ask the user to open the port on the router and try again
-If the Connectivity could be made, continue to the next steps.
-	Ask for some informations:
-		Client's Name:
-		Server's password:
-	check if RSSH is installed
-		If not install it
 		
--What we need to know
-		Client Network:
-		
-		
-On the Client instalation, we show all the options of server created and which ports are available.
-		
-TASKS
 ##################################################
 #Include source file with text functions
 #
@@ -65,7 +39,6 @@ source textfuncs.fnc
 #BASEM="kingit.ddnsking.com/kingit"
 BASEM=192.168.0.50/test
 BANCOM="vpn"
-#R_VPNSRV="kingit.ddnsking.com" 
 TestSrvPort=5245 ##Test server
 TestSrvAddress="kingit.ddnsking.com" ##Test server
 #mongo $BASEM --eval 'db.getCollectionNames()' #Verify if the collection exists
@@ -73,18 +46,18 @@ TestSrvAddress="kingit.ddnsking.com" ##Test server
 #mongo $BASEM --eval 'printjson(db.'$BANCOM'.find({} ,{_id: 0, "VPN_Range": 1, "Report.TotalSize": 1}).sort({"Report.StartDate":-1}).pretty().shellPrint())'	
 
 : <<'SCHEMA'
-db.vpn.insert(
-{
-	"VPN_Address": "NoADDRESS", 
-	"Client":{
-		"Name": "NOCLIENT",
-		"TUN": "'$R_TUN'",
-		"ConIP": "'$R_CONIP'", 
-		"Network": "'$R_NETWORK'", 
-		"Port": "'$R_PORT'"
-		}
-}
-)
+
+'db.vpn.insert({
+	"VPN_Address": "'$R_DDNS'", 
+	"ServerNetwork": "'$R_Network'", 
+	"ServerMask": "'$R_Mask'", 
+	"Client":{"Name": "NOCLIENT",
+	"TUN": "'$R_TUN'", 
+	"ConIP": "'$R_CONIP'", 
+	"Network": "'$R_NETWORK'", 
+	"Mask": "'$R_MASK'", 
+	"Port": "'$R_PORT'"}
+	})'
 
 SCHEMA
 
@@ -526,23 +499,12 @@ echo "sleep 5" >> $TunFile
 echo "route add -net $V_SNet netmask $V_SMask gw $(echo $V_ConIP | sed 's/.$/1/') dev $V_Tun" >> $TunFile
 #route add -net 10.5.63.0 netmask 255.255.255.0 gw 10.3.0.2 #Este sera o novo padrao da obra
 
-#Importante sysctl.conf
-#alterar o portfoward
-#depois sysctl -p
-
 }
 
 function adjustPortForward(){
 	echo "Making some adjustments on port forward"
 	sed -i 's/#net.ipv4.ip_forward=1/net.ipv4.ip_forward=1/' /etc/sysctl.conf
 	sysctl -p
-}
-
-function firewall(){
-FireFile=fire/firewall_${VPN_Ports[$1]}.sh
-	
-#Permitir comunicacao atraves da rede
-#echo "iptables -t nat -A POSTROUTING -j MASQUERADE" >> $FireFile
 }
 
 function configClient(){
@@ -560,8 +522,6 @@ echo "float" >> $ConfFile
 echo "ifconfig $V_ConIP $(echo $V_ConIP | cut -d. -f1-3).1" >> $ConfFile
 echo "secret ../static.key" >> $ConfFile
 
-#push "route 10.0.0.0 255.255.0.0"
-#route 192.168.253.0 255.255.255.0
 
 }
 
@@ -586,27 +546,4 @@ function MenuVPN() {
 	esac
 }
 
-function iniciavpn(){
-
-#Iniciando a VPN
-#sleep 5
-openvpn --config barueri.conf &
-openvpn --config sumare.conf &
-openvpn --config iamspe.conf &
-openvpn --config ersaude.conf &
-
-}
-
-
-
-#CriaConfigs
-#VerifyAvailable
-#---VerifyInternetCon
-#MongoDbConnection
-#FirstLoad
-#TestMongoConnection
-#whatColor
-#SuggestParameters
-#VerifyAvailableConf
-#listServerOptions
 MenuVPN
