@@ -260,7 +260,7 @@ else
 			R_TUN="tun$(echo $i | sed 's/51//')"
 			R_CONIP="122.122.$(echo $i | sed 's/51//').2"
 		fi
-		mongo $BASEM --eval 'db.vpn.insert({"VPN_Address": "'$R_DDNS'", "ServerNetwork": "'$R_Network'", "ServerMask": "'$R_Mask'", "Client":{"Name": "NOCLIENT","TUN": "'$R_TUN'","ConIP": "'$R_CONIP'", "Network": "'$R_NETWORK'", "Mask": "'$R_MASK'", "Port": "'$R_PORT'"}})'
+		mongo $BASEM --eval 'db.vpn.insert({"VPN_Address": '$R_DDNS', "ServerNetwork": "'$R_Network'", "ServerMask": "'$R_Mask'", "Client":{"Name": "NOCLIENT","TUN": "'$R_TUN'","ConIP": "'$R_CONIP'", "Network": "'$R_NETWORK'", "Mask": "'$R_MASK'", "Port": "'$R_PORT'"}})'
 	done
 	#VerifyMongoDB
 	#VerifyAvailableConf
@@ -309,7 +309,7 @@ function sendServerConfs() {
 	Colorize 3 "It's time to send the confs to the server, please insert the password!" 
 	echo""
 	cd confs/server
-	scp -P5100 acesso_$V_Port.conf startsrv_$(echo $V_Port).sh root@minerafa.pointto.us:/root/confs/server/
+	scp -P5100 acesso_$V_Port.conf startsrv_$(echo $V_Port).sh root@$R_VPNSRV:/root/confs/server/
 	read -p "[Enter]"
 }
 
