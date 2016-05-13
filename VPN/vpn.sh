@@ -39,6 +39,7 @@ source textfuncs.fnc
 ##################################################
 ###### Starting global variables
 # 
+INTERFACE="eth"
 BASEM="kingit.ddnsking.com/kingit"
 BANCOM="vpn"
 TestSrvPort=5245 ##Test server
@@ -296,12 +297,12 @@ function SuggestParameters() {
 #Verifying if the computer has a fixed ip address
 	if $(cat /etc//network/interfaces | grep -q "inet static"); then
 		echo "This system already have a static ip address"
-		R_Gat=$(route -n | grep UG | tr -s ' ' | cut -d' ' -f2)
-		R_Interface=$(route -n | grep UG | tr -s ' ' | cut -d' ' -f8)
-		R_Mask=$(ifconfig | grep $(route -n | grep UG | tr -s ' ' | cut -d' ' -f 2 | cut -d. -f1-3) | sed 's/.*Mask://')
-		R_IP="$(ifconfig | grep $(route -n | grep UG | tr -s ' ' | cut -d' ' -f 2 | cut -d. -f1-3) | sed 's/.*inet addr://;s/ Bcast.*//')"
-		R_Network="$(route -n | grep UG | tr -s ' ' | cut -d' ' -f 2 | cut -d. -f1-3).0"
-		R_Broad="$(route -n | grep UG | tr -s ' ' | cut -d' ' -f 2 | cut -d. -f1-3).255"
+		R_Gat=$(route -n | grep UG | grep $INTERFACE | tr -s ' ' | cut -d' ' -f2)
+		R_Interface=$(route -n | grep UG | grep $INTERFACE | tr -s ' ' | cut -d' ' -f8)
+		R_Mask=$(ifconfig | grep $(route -n | grep UG | grep $INTERFACE | tr -s ' ' | cut -d' ' -f 2 | cut -d. -f1-3) | sed 's/.*Mask://')
+		R_IP="$(ifconfig | grep $(route -n | grep UG | grep $INTERFACE | tr -s ' ' | cut -d' ' -f 2 | cut -d. -f1-3) | sed 's/.*inet addr://;s/ Bcast.*//')"
+		R_Network="$(route -n | grep UG | grep $INTERFACE | tr -s ' ' | cut -d' ' -f 2 | cut -d. -f1-3).0"
+		R_Broad="$(route -n | grep UG | grep $INTERFACE | tr -s ' ' | cut -d' ' -f 2 | cut -d. -f1-3).255"
 		R_DNS="8.8.8.8"
 		R_FQDN="$(cat /etc/hostname)"
 		
@@ -320,12 +321,12 @@ function SuggestParameters() {
 		read -p "Press [Enter] to continue"
 	else
 		#Getting the ip address
-		R_Gat=$(route -n | grep UG | tr -s ' ' | cut -d' ' -f2)
-		R_Interface=$(route -n | grep UG | tr -s ' ' | cut -d' ' -f8)
-		R_IP="$(route -n | grep UG | tr -s ' ' | cut -d' ' -f 2 | cut -d. -f1-3).16"
-		R_Mask=$(ifconfig | grep $(route -n | grep UG | tr -s ' ' | cut -d' ' -f 2 | cut -d. -f1-3) | sed 's/.*Mask://')
-		R_Network="$(route -n | grep UG | tr -s ' ' | cut -d' ' -f 2 | cut -d. -f1-3).0"
-		R_Broad="$(route -n | grep UG | tr -s ' ' | cut -d' ' -f 2 | cut -d. -f1-3).255"
+		R_Gat=$(route -n | grep UG | grep $INTERFACE | tr -s ' ' | cut -d' ' -f2)
+		R_Interface=$(route -n | grep UG | grep $INTERFACE | tr -s ' ' | cut -d' ' -f8)
+		R_IP="$(route -n | grep UG | grep $INTERFACE | tr -s ' ' | cut -d' ' -f 2 | cut -d. -f1-3).16"
+		R_Mask=$(ifconfig | grep $(route -n | grep UG | grep $INTERFACE | tr -s ' ' | cut -d' ' -f 2 | cut -d. -f1-3) | sed 's/.*Mask://')
+		R_Network="$(route -n | grep UG | grep $INTERFACE | tr -s ' ' | cut -d' ' -f 2 | cut -d. -f1-3).0"
+		R_Broad="$(route -n | grep UG | grep $INTERFACE | tr -s ' ' | cut -d' ' -f 2 | cut -d. -f1-3).255"
 		R_DNS="8.8.8.8"
 		#R_FQDN="vpnserver"
 		
