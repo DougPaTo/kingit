@@ -309,7 +309,9 @@ function sendServerConfs() {
 	Colorize 3 "It's time to send the confs to the server, please insert the password!" 
 	echo""
 	cd confs/server
-	scp -P5100 acesso_$V_Port.conf startsrv_$(echo $V_Port).sh root@$R_VPNSRV:/root/confs/server/ 
+	echo $R_VPNSRV
+	read -p "[Enter]"
+	#scp -P5100 acesso_$V_Port.conf startsrv_$(echo $V_Port).sh root@$R_VPNSRV:/root/confs/server/ 
 }
 
 
