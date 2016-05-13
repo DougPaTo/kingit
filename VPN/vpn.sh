@@ -39,8 +39,7 @@ source textfuncs.fnc
 ##################################################
 ###### Starting global variables
 # 
-#BASEM="kingit.ddnsking.com/kingit"
-BASEM=kingit.ddnsking.com/kingit
+BASEM="kingit.ddnsking.com/kingit"
 BANCOM="vpn"
 TestSrvPort=5245 ##Test server
 TestSrvAddress="kingit.ddnsking.com" ##Test server
