@@ -324,7 +324,7 @@ function SuggestParameters() {
 		R_Gat=$(route -n | grep UG | grep $INTERFACE | tr -s ' ' | cut -d' ' -f2)
 		R_Interface=$(route -n | grep UG | grep $INTERFACE | tr -s ' ' | cut -d' ' -f8)
 		R_IP="$(route -n | grep UG | grep $INTERFACE | tr -s ' ' | cut -d' ' -f 2 | cut -d. -f1-3).16"
-		R_Mask=$(ifconfig | grep $(route -n | grep UG | grep $INTERFACE | tr -s ' ' | cut -d' ' -f 2 | cut -d. -f1-3) | sed 's/.*Mask://')
+		R_Mask=$(ifconfig | grep -m 1 $(route -n | grep UG | grep $INTERFACE | tr -s ' ' | cut -d' ' -f 2 | cut -d. -f1-3) | sed 's/.*Mask://')
 		R_Network="$(route -n | grep UG | grep $INTERFACE | tr -s ' ' | cut -d' ' -f 2 | cut -d. -f1-3).0"
 		R_Broad="$(route -n | grep UG | grep $INTERFACE | tr -s ' ' | cut -d' ' -f 2 | cut -d. -f1-3).255"
 		R_DNS="8.8.8.8"
