@@ -299,7 +299,7 @@ function SuggestParameters() {
 		echo "This system already have a static ip address"
 		R_Gat=$(route -n | grep UG | grep $INTERFACE | tr -s ' ' | cut -d' ' -f2)
 		R_Interface=$(route -n | grep UG | grep $INTERFACE | tr -s ' ' | cut -d' ' -f8)
-		R_Mask=$(ifconfig | grep $(route -n | grep UG | grep $INTERFACE | tr -s ' ' | cut -d' ' -f 2 | cut -d. -f1-3) | sed 's/.*Mask://')
+		R_Mask=$(ifconfig | grep -m 1 $(route -n | grep UG | grep $INTERFACE | tr -s ' ' | cut -d' ' -f 2 | cut -d. -f1-3) | sed 's/.*Mask://')
 		R_IP="$(ifconfig | grep $(route -n | grep UG | grep $INTERFACE | tr -s ' ' | cut -d' ' -f 2 | cut -d. -f1-3) | sed 's/.*inet addr://;s/ Bcast.*//')"
 		R_Network="$(route -n | grep UG | grep $INTERFACE | tr -s ' ' | cut -d' ' -f 2 | cut -d. -f1-3).0"
 		R_Broad="$(route -n | grep UG | grep $INTERFACE | tr -s ' ' | cut -d' ' -f 2 | cut -d. -f1-3).255"
