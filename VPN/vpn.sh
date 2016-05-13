@@ -401,7 +401,7 @@ function SuggestParameters() {
 }
 
 function listServerOptions() {
-	varOpt=($(mongo $BASEM --eval 'db.vpn.find({"Client.Name": "NOCLIENT"}, {_id: 0, VPN_Address: 1}).limit(1).pretty().shellPrint()' | grep { | sed 's/{ //;s/ }//' | cut -d: -f2 | sed 's/ //g'))
+	varOpt=("$(mongo $BASEM --eval 'db.vpn.find({"Client.Name": "NOCLIENT"}, {_id: 0, VPN_Address: 1}).limit(1).pretty().shellPrint()' | grep { | sed 's/{ //;s/ }//' | cut -d: -f2 | sed 's/ //g')")
 
 	CenterTitle "These are the servers available choose one: "
 	echo ""
@@ -426,7 +426,7 @@ function listServerOptions() {
 		echo "Please choose a valid option" ; listServerOptions
 	fi
 	if (( $R_srvC == 9 )); then
-		exit
+		return exit
 	fi
 }
 
@@ -472,7 +472,7 @@ function VerifyAvailableConf() {
 	Created=($(ls confs/server/))
 	if [ ${#Created[@]} -lt 1 ] ;then
 		echo "Any VPNs Created"
-		read -p "Press [Enter] to create the the configuration for Port $V_Port here"
+		read -p "Press [Enter] to create the configuration for Port $V_Port here"
 		configServer
 		configClient
 		#Adjusting Client configs to be server configs
