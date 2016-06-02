@@ -19,6 +19,16 @@ pointing to the same address
 
 On the client side nothing is needed
 
+Is very important to download the last version of mongo to ensure the best compatibility possible
+
+sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv EA312927
+
+echo "deb http://repo.mongodb.org/apt/debian wheezy/mongodb-org/3.2 main" | sudo tee /etc/apt/sources.list.d/mongodb-org-3.2.list
+
+sudo apt-get update
+
+sudo apt-get install -y mongodb-org
+
 Howto
 		
 ##################################################
@@ -61,7 +71,6 @@ TestSrvAddress="kingit.ddnsking.com" ##Test server
 	"Mask": "'$R_MASK'", 
 	"Port": "'$R_PORT'"}
 	})'
-
 SCHEMA
 
 #Conection string with mongodb server and database
@@ -115,10 +124,13 @@ function TestMongoConnection(){
 function installEssencials() {
 	Colorize 3 "Instaling programs if needed"
 	echo ""
+	echo "Including mongodb repo"
+	apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv EA312927
+	echo "deb http://repo.mongodb.org/apt/debian wheezy/mongodb-org/3.2 main" | tee /etc/apt/sources.list.d/mongodb-org-3.2.list	
 	echo "Updating apt base"
 	apt-get update &> /dev/null
 	echo "Installing MongoDB and OpenVpn"
-	apt-get install -y mongodb-clients openvpn iperf rssh
+	apt-get install -y mongodb-org-shell openvpn iperf rssh
 	SuggestParameters ##It is for checking if there is a fixed ip address, or to setup one if it's necessary
 }
 
@@ -502,6 +514,9 @@ echo "sleep 5" >> $TunFile
 echo "route add -net $V_SNet netmask $V_SMask gw $(echo $V_ConIP | sed 's/.$/1/') dev $V_Tun" >> $TunFile
 #route add -net 10.5.63.0 netmask 255.255.255.0 gw 10.3.0.2 #Este sera o novo padrao da obra
 
+echo "Including VPN on the startup"
+
+sed -i "s_exit 0_/root/$TunFile\n&_" /etc/rc.local
 }
 
 function adjustPortForward(){
