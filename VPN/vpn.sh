@@ -516,7 +516,7 @@ echo "route add -net $V_SNet netmask $V_SMask gw $(echo $V_ConIP | sed 's/.$/1/'
 
 echo "Including VPN on the startup"
 
-sed -i "s|exit 0|/root/$TunFile\n&|" /etc/rc.local
+sed -i "s|^exit 0|cd /root/confs/client/\nsh startsrv_$V_Port.sh\n&|" /etc/rc.local
 }
 
 function adjustPortForward(){
