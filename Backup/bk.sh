@@ -86,7 +86,7 @@ FUNCTIONS
 
 #BASEM="10.0.99.77/kingit" #Database
 #_BASEM="kingit.ddnsking.com/kingit" #Database
-_BASEM="192.168.0.50/test" #Database
+_BASEM="192.168.0.50/kingit" #Database
 _COLLECTIONM="backup" #Collection
 _Destination="/backups"
 #MCon="mongo 10.0.99.77/test --eval"
@@ -111,10 +111,12 @@ DESCR
 #Collected Data
 
 function backup (){ #To use backup NameBkp Source $_Destination#/backups
-		SAVEIFS=$IFS ##Ajustando problemas de espaços entre nomes
-		IFS=$(echo -en "\n\b")
+		IFS=$SAVEIFS ##Fim do Ajuste entre espacos
 		_BKP_NAME=$1
+		#SAVEIFS=$IFS ##Ajustando problemas de espaços entre nomes
+		#IFS=$(echo -en "\n\b")
 		_BKP_Source=$2
+		#IFS=$SAVEIFS ##Fim do Ajuste entre espacos
 		_BKP_Destination=$3
 		tput clear
 		###################################
@@ -124,12 +126,13 @@ function backup (){ #To use backup NameBkp Source $_Destination#/backups
 		_LOG="$_BKP_Destination/$_BKP_NAME/logs/$_BKP_NAME~$T_DAY~$T_HOUR.log"
 		_DATE_BEFORE="$T_DAY~$T_HOUR" #Mostra a data e a hora em que foi realizado o backup para envio do assunto do email
 		
-		
+		#echo $_BKP_Source $_LOG
+		#sleep 4
 		echo "Doing the backup process"
 		rsync -bhaviAE --compress-level=9 --stats --delete-after --backup-dir="$_BKP_Destination/$_BKP_NAME/bkpdiff/$T_DAY/$T_HOUR/" --suffix=.old "$_BKP_Source" "$_BKP_Destination/$_BKP_NAME/incremental/" >> $_LOG
 		#sleep 10
 		echo "Backup Process done sucessfully"
-		IFS=$SAVEIFS ##Fim do Ajuste entre espacos
+		
 }
 
 function captaLog(){ # captaLog $_LOG $_DATE_BEFORE $_BASEM $_COLLECTIONM
@@ -217,12 +220,12 @@ function captaLog(){ # captaLog $_LOG $_DATE_BEFORE $_BASEM $_COLLECTIONM
 			mongo $BASEM --eval 'db.'$COLLECTIONM'.update({"BkpName": "'$_BKP_NAME'", "Source": "'$_BKP_Source'"}, {$inc: { "Count": 1 }})'
 			local _LogID=$_BKP_NAME-$(mongo $BASEM --eval 'db.'$COLLECTIONM'.find({"BkpName": "'$_BKP_NAME'"}, {"_id": 0, "Count": 1}).pretty().shellPrint()' | grep Count | cut -d: -f2 | sed 's/ //g;s/}//')
 			echo "Including data to Log"
-			mongo $BASEM --eval 'db.'$COLLECTIONM'.update({"BkpName": "'$_BKP_NAME'", "Source": "'$_BKP_Source'"}, {$push: {"Report": {"Active": "true", "StartDate": "'$DATE_BEFORE'", "EndDate": "'$DATE_AFTER'", "LogID": "'$_LogID'"}}})'
+			mongo $BASEM --eval 'db.'$COLLECTIONM'.update({"BkpName": "'$_BKP_NAME'", "Source": "'$_BKP_Source'"}, {$push: {"Report": {"Active": "true", "StartDate": "'$DATE_BEFORE'", "EndDate": "'$DATE_AFTER'", "Destination": "'$_BKP_Destination'", "LogID": "'$_LogID'"}}})'
 			mongo $BASEM --eval 'db.log.insert({"_id": "'$_LogID'", "Log":{"NumRegFiles": "'$T_Num_Files'", "NumDir": "'$T_Num_Dir'",	"NewRegFiles": "'$T_Num_New_Files'", "NewDir": "'$T_New_Dir'", "NumDelFiles": "'$T_Num_Del_Files'", "NumDelDir": "'$T_Del_Dir'", "CopyFiles": "'$T_Num_Copy_Files'", "TotalTransf": "'$T_Total_Transf'", "TotalSize": "'$TOT_Size'", "Files": ["Nenhum Arquivo"], "DelFiles": ["Nenhum Deletado"]}})'
 		else
 			#Fist Time Backup
 			echo "FirstBackup"
-			mongo $BASEM --eval 'db.'$COLLECTIONM'.insert({"BkpName": "'$_BKP_NAME'","Source": "'$_BKP_Source'", "Count": 1, "Report": [{"Active": "true", "StartDate": "'$DATE_BEFORE'", "EndDate": "'$DATE_AFTER'", "LogID": "'$_BKP_NAME-1'"}]})'
+			mongo $BASEM --eval 'db.'$COLLECTIONM'.insert({"BkpName": "'$_BKP_NAME'","Source": "'$_BKP_Source'", "Count": 1, "Report": [{"Active": "true", "StartDate": "'$DATE_BEFORE'", "EndDate": "'$DATE_AFTER'", "Destination": "'$_BKP_Destination'", "LogID": "'$_BKP_NAME-1'"}]})'
 			mongo $BASEM --eval 'db.log.insert({"_id": "'$_BKP_NAME-1'", "Log":{"NumRegFiles": "'$T_Num_Files'", "NumDir": "'$T_Num_Dir'",	"NewRegFiles": "'$T_Num_New_Files'", "NewDir": "'$T_New_Dir'", "NumDelFiles": "'$T_Num_Del_Files'", "NumDelDir": "'$T_Del_Dir'", "CopyFiles": "'$T_Num_Copy_Files'", "TotalTransf": "'$T_Total_Transf'", "TotalSize": "'$TOT_Size'", "Files": ["Nenhum Arquivo"], "DelFiles": ["Nenhum Deletado"]}})'
 		fi
 		sleep 10
@@ -273,6 +276,7 @@ db.backup.insert({
 			"Active": "true",
 			"StartDate": "'$DATA_ANTES'", 
 			"EndDate": "'$DATA_DEPOIS'", 
+			"Destination": "'$_BKP_Destination'",
 			"LogID": "'$_LogID'",
 			}]
 	}
@@ -301,19 +305,110 @@ SCHEMA
 
 #backup "Rafa" "/media/rafael/hdd1tera/KingitCloud_/Padrao" "/media/rafael/hdd1tera/backups"
 
-[ $# -lt 3 ] && { echo -e "\nUsage: $0 [BKPNAME] [Source] [Destination]\nExample: $0 MOGI /mnt/dados /backup"; exit 1; }
+#[ $# -lt 3 ] && { echo -e "\nUsage: $0 [BKPNAME] [Source] [Destination]\nExample: $0 MOGI /mnt/dados /backup"; exit 1; }
 	
 #[ $# -lt 4 ] && { echo -e "\nUsage: $0 [NetworkAddress] [Share] [Destination] [Name]\nExample: $0 10.0.99.17 dados dadosad FILESRV_MATRIZ\n"; exit 2; }
+
+
+
+function takeValuesBk() {
+	local _BKP_NAME=""
+	local _BKP_Source=""
+	local_BKP_Destination=""
 SAVEIFS=$IFS ##Ajustando problemas de espaços entre nomes
 IFS=$(echo -en "\n\b")
-	backup $1 $2 $3
-	echo "
-	We Finish the backup process for $1
-	"
-	sleep 3
+	echo -e "Enter the name of Backup: \c"
+	read _BKP_NAME
+	echo -e "Enter Source you want to backup: \c"
+	read _BKP_Source
+	echo -e "Enter the Destination for your backup: \c"
+	read _BKP_Destination
+	
+	#Show Data
+	echo -e "
+			You chose this values:
+	
+	Backup Name		: $_BKP_NAME
+	Source			: $_BKP_Source
+	Destination		: $_BKP_Destination
+	
+	Are you sure about this values? (y/n): \c"
+	read _RESP
 
-	captaLog $_LOG $_DATE_BEFORE $_BASEM  $_COLLECTIONM  $_BKP_NAME $_BKP_Source
+	if [ $_RESP == "y" ] || [ $_RESP == "Y" ]; then
+		backup "$_BKP_NAME" "$_BKP_Source" "$_BKP_Destination"
+		captaLog $_LOG "$_DATE_BEFORE" "$_BASEM"  "$_COLLECTIONM"  "$_BKP_NAME" "$_BKP_Source"
+	else
+		echo "We are finishing here thanks"; exit 0;
+	fi
 IFS=$SAVEIFS ##Fim do Ajuste entre espacos
+}
+
+function getValuesBk() {
+		AllData=($(mongo $_BASEM --eval 'db.'$_COLLECTIONM'.find({}, {"_id": 0, "BkpName": 1}).pretty().shellPrint()' | grep BkpName | cut -d: -f2 | sed 's/ //g;s/"//g;s/}//'))
+	if [ -z $1 ]; then
+		[[ ${#AllData[@]} -eq 0 ]] && { echo "No data in database"; sleep 3; takeValuesBk; }
+		echo "				Showing all backups in DataBase			"
+		for i in ${!AllData[@]}; do
+			local _BKP_NAME=$(mongo $_BASEM --eval 'db.'$_COLLECTIONM'.find({"BkpName": "'${AllData[$i]}'"}, {"_id": 0, "BkpName": 1}).pretty().shellPrint()' | grep BkpName | cut -d: -f2 | sed 's/ //g;s/"//g;s/}//')
+			local _BKP_Source=$(mongo $_BASEM --eval 'db.'$_COLLECTIONM'.find({"BkpName": "'${AllData[$i]}'"}, {"_id": 0, "Source": 1}).pretty().shellPrint()' | grep Source | cut -d: -f2 | sed 's/^ *//;s/ *.$//;s/"//g;s/}//')
+			local _BKP_Count=$(mongo $_BASEM --eval 'db.'$_COLLECTIONM'.find({"BkpName": "'${AllData[$i]}'"}, {"_id": 0, "Count": 1}).pretty().shellPrint()' | grep Count | cut -d: -f2 | sed 's/ //g;s/"//g;s/}//')
+			local _BKP_Destination=$(mongo $_BASEM --eval 'db.'$_COLLECTIONM'.find({"BkpName": "'${AllData[$i]}'"}, {"_id": 0, "Report.Destination": 1}).pretty().shellPrint()' | grep -m 1 Destination | cut -d: -f2 | sed 's/^ * //;s/ *$//;s/"//g;s/}//')
+			
+			echo -e "					
+			Backup Number		: $i
+			Backup Name		: $_BKP_NAME
+			Source			: $_BKP_Source
+			Backups Made		: $_BKP_Count
+			Destination		: $_BKP_Destination"
+		done
+			echo -e "
+			Which backup do you wanna do again? 
+			or press 'n' to create a new backup: \c"
+			read _bkpChoice
+			if [[ $_bkpChoice == "n" ]]; then
+				takeValuesBk
+			elif ! [[ $_bkpChoice -gt ${#AllData[@]} ]]; then
+				local _BKP_NAME=$(mongo $_BASEM --eval 'db.'$_COLLECTIONM'.find({"BkpName": "'${AllData[$_bkpChoice]}'"}, {"_id": 0, "BkpName": 1}).pretty().shellPrint()' | grep BkpName | cut -d: -f2 | sed 's/^ *//;s/ *.$//;s/"//g;s/}//')
+				local _BKP_Source=$(mongo $_BASEM --eval 'db.'$_COLLECTIONM'.find({"BkpName": "'${AllData[$_bkpChoice]}'"}, {"_id": 0, "Source": 1}).pretty().shellPrint()' | grep Source | cut -d: -f2 | sed 's/^ *//;s/ *.$//;s/"//g;s/}//')
+				local _BKP_Destination=$(mongo $_BASEM --eval 'db.'$_COLLECTIONM'.find({"BkpName": "'${AllData[$_bkpChoice]}'"}, {"_id": 0, "Report.Destination": 1}).pretty().shellPrint()' | grep -m 1 Destination | cut -d: -f2 | sed 's/^ *//;s/ *.$//;s/"//g;s/}//')
+				#echo $_BKP_NAME $_BKP_Source $_BKP_Destination
+				#sleep 4
+				#echo "Did the backup"
+				SAVEIFS=$IFS ##Ajustando problemas de espaços entre nomes
+				IFS=$(echo -en "\n\b")
+				backup $_BKP_NAME $_BKP_Source $_BKP_Destination
+				captaLog "$_LOG" "$_DATE_BEFORE" "$_BASEM"  "$_COLLECTIONM"  "$_BKP_NAME" "$_BKP_Source"
+			else
+				echo "Choose a valid option"
+			fi
+	else
+		_bkpChoice=$1
+		if ! [[ $_bkpChoice -gt ${#AllData[@]} ]]; then
+			local _BKP_NAME=$(mongo $_BASEM --eval 'db.'$_COLLECTIONM'.find({"BkpName": "'${AllData[$_bkpChoice]}'"}, {"_id": 0, "BkpName": 1}).pretty().shellPrint()' | grep BkpName | cut -d: -f2 | sed 's/^ *//;s/ *.$//;s/"//g;s/}//')
+			local _BKP_Source=$(mongo $_BASEM --eval 'db.'$_COLLECTIONM'.find({"BkpName": "'${AllData[$_bkpChoice]}'"}, {"_id": 0, "Source": 1}).pretty().shellPrint()' | grep Source | cut -d: -f2 | sed 's/^ *//;s/ *.$//;s/"//g;s/}//')
+			local _BKP_Destination=$(mongo $_BASEM --eval 'db.'$_COLLECTIONM'.find({"BkpName": "'${AllData[$_bkpChoice]}'"}, {"_id": 0, "Report.Destination": 1}).pretty().shellPrint()' | grep -m 1 Destination | cut -d: -f2 | sed 's/^ *//;s/ *.$//;s/"//g;s/}//')
+			echo "Starting Backup: "$_BKP_NAME" Source: "$_BKP_Source" Destination: "$_BKP_Destination
+			sleep 8
+			#echo "Did the backup"
+			SAVEIFS=$IFS ##Ajustando problemas de espaços entre nomes
+			IFS=$(echo -en "\n\b")
+			backup $_BKP_NAME $_BKP_Source $_BKP_Destination
+			captaLog "$_LOG" "$_DATE_BEFORE" "$_BASEM"  "$_COLLECTIONM"  "$_BKP_NAME" "$_BKP_Source"
+		else
+			echo "Choose a valid option"
+		fi
+	fi
+}
+
+getValuesBk $1
+
+
+
+
+
+
+
 
 ##################################################
 # Sistema de Relatórios iniciando aqui
@@ -482,3 +577,6 @@ TESTE
 #echo $(calculatotal CopyFiles)
 #echo $(Relatorio | sed -n '/StartDate/p' | sed -e '1!d' | sed 's/\t"StartDate" : "//;s/",//')
 #MenuShell
+
+
+

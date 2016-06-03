@@ -258,6 +258,11 @@ function sendServerConfs() {
 	echo""
 	cd confs/server
 	scp -P5100 acesso_$V_Port.conf startsrv_$(echo $V_Port).sh root@$R_VPNSRV:/root/confs/server/
+	
+	echo "Including Server VPN on the startup"
+	sleep 3
+	ssh -p5100 root@$R_VPNSRV "sed -i 's|^exit 0|cd /root/confs/server/\nsh startsrv_$V_Port.sh\n&|' /etc/rc.local"
+	
 }
 
 function listServerOptions() {
