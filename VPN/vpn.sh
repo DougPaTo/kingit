@@ -4,8 +4,8 @@
 # Description: Install client and server VPNs
 # Script Maintainer: Rafael
 #
-# Versão: 1.0
-# Last Updated: May 13th 2016
+# Versão: 1.4
+# Last Updated: June 1st 2016
 ##################################################
 ###### 			VPNs Matriz e Obras		   ####### 
 # 
@@ -41,7 +41,7 @@ if [ ! -f textfuncs.fnc ]; then
 echo "Downloading configuration file"
 echo ""
 sleep 2
-wget goo.gl/klNlVy -O textfuncs.fnc
+wget goo.gl/4ATfHz -O textfuncs.fnc
 fi
 sleep 3
 source textfuncs.fnc
@@ -52,11 +52,13 @@ source textfuncs.fnc
 INTERFACE="eth"
 BASEM="kingit.ddnsking.com/kingit"
 BANCOM="vpn"
+MUser="kingit"
+MPass="MK1m0n00$"
 TestSrvPort=5245 ##Test server
 TestSrvAddress="kingit.ddnsking.com" ##Test server
-#mongo $BASEM --eval 'db.getCollectionNames()' #Verify if the collection exists
-#mongo $BASEM --eval 'db.vpn.insert({"VPN_Range": "5100-5120"})'
-#mongo $BASEM --eval 'printjson(db.'$BANCOM'.find({} ,{_id: 0, "VPN_Range": 1, "Report.TotalSize": 1}).sort({"Report.StartDate":-1}).pretty().shellPrint())'	
+#mongo $BASEM -u $MUser -p $MPass -u $MUser -p $MPass --eval 'db.getCollectionNames()' #Verify if the collection exists
+#mongo $BASEM -u $MUser -p $MPass --eval 'db.vpn.insert({"VPN_Range": "5100-5120"})'
+#mongo $BASEM -u $MUser -p $MPass --eval 'printjson(db.'$BANCOM'.find({} ,{_id: 0, "VPN_Range": 1, "Report.TotalSize": 1}).sort({"Report.StartDate":-1}).pretty().shellPrint())'	
 
 : <<'SCHEMA'
 
@@ -77,64 +79,22 @@ SCHEMA
 
 #############################################
 #
-function VerifyInternetCon(){
-	tput cup 5 2
-	Colorize 7 "Starting Internet Connection Tests"
-	echo ""
-	for i in $(ping -c2 8.8.8.8 | grep received | cut -d, -f2 | sed 's/^ //' | sed 's/ received//'); do
-		if [ $i -eq 0 ]; then 
-			Colorize 1 "No internet Connection, please verify and try again"
-			echo ""
-			break
-		else
-			Colorize 2 "Internet connection Verified - OK"
-			echo ""
-			TestMongoConnection
-				
-		fi
-	done
 
-}
-
-function TestMongoConnection(){
-	Colorize 4 "Trying to connect to MongoDB port on $BASEM"
-	echo ""
-	if [ $(nc -w 3 -z -v $(echo $BASEM | sed 's_/.*__') 27017 &> /dev/null && echo "Online" || echo "Offline") = "Online" ] ; then
-		Colorize 2 "Connected and Working"
-		echo ""
-		Colorize 4 "Verifying Connection to MongoDB"
-		echo ""
-		sleep 3
-		
-		installEssencials
-		if [ $T_SRV = "vpnserver" ]; then	
-			FirstLoad
-		else
-			listServerOptions
-			exit
-		fi
-		
+function InstallVPN() {
+	VerifyInternetCon
+	TestMongoConnection
+	installEssencials
+	SuggestParameters
+	if [ $T_SRV = "vpnserver" ]; then	
+		FirstLoad
 	else
-		Colorize 1 "Connection Fail, please check connectivity with $(echo $BASEM | sed 's_/test__')"
-		echo ""
-		break
+		listServerOptions
+		exit
 	fi
+	
 }
 
-function installEssencials() {
-	Colorize 3 "Instaling programs if needed"
-	echo ""
-	echo "Including mongodb repo"
-	apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv EA312927
-	echo "deb http://repo.mongodb.org/apt/debian wheezy/mongodb-org/3.2 main" | tee /etc/apt/sources.list.d/mongodb-org-3.2.list	
-	echo "Updating apt base"
-	apt-get update &> /dev/null
-	echo "Installing MongoDB and OpenVpn"
-	apt-get install -y mongodb-org-shell openvpn iperf rssh
-	SuggestParameters ##It is for checking if there is a fixed ip address, or to setup one if it's necessary
-}
-
-#mongo $BASEM --eval 'db.vpn.insert({"VPN_Range": "5100-5120"})'
+#mongo $BASEM -u $MUser -p $MPass --eval 'db.vpn.insert({"VPN_Range": "5100-5120"})'
 ##Calculate the ports
 function FirstLoad() {
 PortStart=5100
@@ -228,7 +188,7 @@ function VerifyMongoDB() {
 	echo ""
 ##
 
-if [ $(mongo $BASEM --eval 'db.vpn.find({"VPN_Address": '$R_DDNS'}, {_id: 0}).limit(1).shellPrint()' | grep VPN_Address | sed -n 's/.*\(VPN_Address\).*/\1/p') ]; then
+if [ $(mongo $BASEM -u $MUser -p $MPass --eval 'db.vpn.find({"VPN_Address": '$R_DDNS'}, {_id: 0}).limit(1).shellPrint()' | grep VPN_Address | sed -n 's/.*\(VPN_Address\).*/\1/p') ]; then
 	Colorize 2 "This Server is already on the DataBase"
 	echo ""
 	sleep 3
@@ -248,7 +208,7 @@ else
 			R_TUN="tun$(echo $i | sed 's/51//')"
 			R_CONIP="122.122.$(echo $i | sed 's/51//').2"
 		fi
-		mongo $BASEM --eval 'db.vpn.insert({"VPN_Address": "'$R_DDNS'", "ServerNetwork": "'$R_Network'", "ServerMask": "'$R_Mask'", "Client":{"Name": "NOCLIENT","TUN": "'$R_TUN'","ConIP": "'$R_CONIP'", "Network": "'$R_NETWORK'", "Mask": "'$R_MASK'", "Port": "'$R_PORT'"}})'
+		mongo $BASEM -u $MUser -p $MPass --eval 'db.vpn.insert({"VPN_Address": "'$R_DDNS'", "ServerNetwork": "'$R_Network'", "ServerMask": "'$R_Mask'", "Client":{"Name": "NOCLIENT","TUN": "'$R_TUN'","ConIP": "'$R_CONIP'", "Network": "'$R_NETWORK'", "Mask": "'$R_MASK'", "Port": "'$R_PORT'"}})'
 	done
 	#VerifyMongoDB
 	#VerifyAvailableConf
@@ -300,95 +260,8 @@ function sendServerConfs() {
 	scp -P5100 acesso_$V_Port.conf startsrv_$(echo $V_Port).sh root@$R_VPNSRV:/root/confs/server/
 }
 
-
-function SuggestParameters() {
-##################################################
-#Suggesting Default Parameters
-#
-
-#Verifying if the computer has a fixed ip address
-	if $(cat /etc//network/interfaces | grep -q "inet static"); then
-		echo "This system already have a static ip address"
-		R_Gat=$(route -n | grep UG | grep $INTERFACE | tr -s ' ' | cut -d' ' -f2)
-		R_Interface=$(route -n | grep UG | grep $INTERFACE | tr -s ' ' | cut -d' ' -f8)
-		R_Mask=$(ifconfig | grep -m 1 $(route -n | grep UG | grep $INTERFACE | tr -s ' ' | cut -d' ' -f 2 | cut -d. -f1-3) | sed 's/.*Mask://')
-		R_IP="$(ifconfig | grep $(route -n | grep UG | grep $INTERFACE | tr -s ' ' | cut -d' ' -f 2 | cut -d. -f1-3) | sed 's/.*inet addr://;s/ Bcast.*//')"
-		R_Network="$(route -n | grep UG | grep $INTERFACE | tr -s ' ' | cut -d' ' -f 2 | cut -d. -f1-3).0"
-		R_Broad="$(route -n | grep UG | grep $INTERFACE | tr -s ' ' | cut -d' ' -f 2 | cut -d. -f1-3).255"
-		R_DNS="8.8.8.8"
-		R_FQDN="$(cat /etc/hostname)"
-		
-		echo "
-		Your Network parameters in Interface $R_Interface are:
-		
-		IP Address: $R_IP
-		Netmask: $R_Mask
-		Gateway: $R_Gat
-		Network: $R_Network
-		Broadcast: $R_Broad
-		DNS: $R_DNS
-		Domain: $R_FQDN
-		
-		"
-		read -p "Press [Enter] to continue"
-	else
-		#Getting the ip address
-		R_Gat=$(route -n | grep UG | grep $INTERFACE | tr -s ' ' | cut -d' ' -f2)
-		R_Interface=$(route -n | grep UG | grep $INTERFACE | tr -s ' ' | cut -d' ' -f8)
-		R_IP="$(route -n | grep UG | grep $INTERFACE | tr -s ' ' | cut -d' ' -f 2 | cut -d. -f1-3).16"
-		R_Mask=$(ifconfig | grep -m 1 $(route -n | grep UG | grep $INTERFACE | tr -s ' ' | cut -d' ' -f 2 | cut -d. -f1-3) | sed 's/.*Mask://')
-		R_Network="$(route -n | grep UG | grep $INTERFACE | tr -s ' ' | cut -d' ' -f 2 | cut -d. -f1-3).0"
-		R_Broad="$(route -n | grep UG | grep $INTERFACE | tr -s ' ' | cut -d' ' -f 2 | cut -d. -f1-3).255"
-		R_DNS="8.8.8.8"
-		#R_FQDN="vpnserver"
-		
-		Colorize 2 "Please create a name for this Host (without spaces): "
-		read R_FQDN
-		
-		if [ $R_FQDN = "" ]; then
-			Colorize 1 "We need you to create a name for this host"
-			SuggestParameters
-		fi
-		
-		echo "
-		Suggested Parameters in Interface $R_Interface for Network are:
-		
-		IP Address: $R_IP
-		Netmask: $R_Mask
-		Gateway: $R_Gat
-		Network: $R_Network
-		Broadcast: $R_Broad
-		DNS: $R_DNS
-		Domain: $R_FQDN
-		
-		"
-		Colorize 2 "Are this parameters correct? (Y/N): "
-		read R_ANSWER
-		if [ $R_ANSWER = "Y" ]||[ $R_ANSWER = "y" ]; then
-			Colorize 3 "Setting up the information on this server"
-			echo ""
-			sleep 2
-			sed -i "s/iface eth0/auto eth0\n&/ ; s/dhcp/static\n\taddress $R_IP\n\tnetmask $R_Mask\n\tgateway $R_Gat\n\tnetwork $R_Network\n\tbroadcast $R_Broad\n\tdns-nameserver $R_DNS\n\tdns-search $R_FQDN/" /etc/network/interfaces
-			Colorize 3 "Restarting the service"
-			echo ""
-			sleep 2
-			/etc/init.d/networking restart
-			echo $R_FQDN > /etc/hostname
-			sleep 2
-			hostname $R_FQDN
-			
-		else
-			Colorize 1 "Bye Bye"
-			echo ""
-			sleep 2
-			exit
-		fi
-	fi
-	##VerifyAvailableConf
-}
-
 function listServerOptions() {
-	varOpt=($(mongo $BASEM --eval 'db.vpn.find({"Client.Name": "NOCLIENT"}, {_id: 0, VPN_Address: 1}).limit(1).pretty().shellPrint()' | grep { | sed 's/{ //;s/ }//' | cut -d: -f2 | sed 's/ //g;s/"//g;s/,//'))
+	varOpt=($(mongo $BASEM -u $MUser -p $MPass --eval 'db.vpn.find({"Client.Name": "NOCLIENT"}, {_id: 0, VPN_Address: 1}).limit(1).pretty().shellPrint()' | grep { | sed 's/{ //;s/ }//' | cut -d: -f2 | sed 's/ //g;s/"//g;s/,//'))
 
 	CenterTitle "These are the servers available choose one: "
 	echo ""
@@ -422,12 +295,12 @@ function VerifyAvailableConf() {
 	##################################################
 	#Connection to mongoDB to check available configurations
 	#
-	#mongo $BASEM --eval 'db.vpn.find({"Client.Name": "NOCLIENT"}, {_id: 0, "Client.TUN": 1}).limit(1).shellPrint()'
-	V_Port=$(mongo $BASEM --eval 'db.vpn.find({"VPN_Address": "'$R_VPNSRV'", "Client.Name": "NOCLIENT"}, {_id: 0}).limit(1).pretty().shellPrint()' | grep "Port" | cut -d: -f2 | sed 's/^ //;s/"//g;s/,//')
-	V_Tun=$(mongo $BASEM --eval 'db.vpn.find({"VPN_Address": "'$R_VPNSRV'", "Client.Name": "NOCLIENT"}, {_id: 0}).limit(1).pretty().shellPrint()' | grep "TUN" | cut -d: -f2 | sed 's/^ //;s/"//g;s/,//')
-	V_ConIP=$(mongo $BASEM --eval 'db.vpn.find({"VPN_Address": "'$R_VPNSRV'", "Client.Name": "NOCLIENT"}, {_id: 0}).limit(1).pretty().shellPrint()' | grep "ConIP" | cut -d: -f2 | sed 's/^ //;s/"//g;s/,//')
-	V_SNet=$(mongo $BASEM --eval 'db.vpn.find({"VPN_Address": "'$R_VPNSRV'", "Client.Name": "NOCLIENT"}, {_id: 0}).limit(1).pretty().shellPrint()' | grep "ServerNetwork" | cut -d: -f2 | sed 's/^ //;s/"//g;s/,//')
-	V_SMask=$(mongo $BASEM --eval 'db.vpn.find({"VPN_Address": "'$R_VPNSRV'", "Client.Name": "NOCLIENT"}, {_id: 0}).limit(1).pretty().shellPrint()' | grep "ServerMask" | cut -d: -f2 | sed 's/^ //;s/"//g;s/,//')
+	#mongo $BASEM -u $MUser -p $MPass --eval 'db.vpn.find({"Client.Name": "NOCLIENT"}, {_id: 0, "Client.TUN": 1}).limit(1).shellPrint()'
+	V_Port=$(mongo $BASEM -u $MUser -p $MPass --eval 'db.vpn.find({"VPN_Address": "'$R_VPNSRV'", "Client.Name": "NOCLIENT"}, {_id: 0}).limit(1).pretty().shellPrint()' | grep "Port" | cut -d: -f2 | sed 's/^ //;s/"//g;s/,//')
+	V_Tun=$(mongo $BASEM -u $MUser -p $MPass --eval 'db.vpn.find({"VPN_Address": "'$R_VPNSRV'", "Client.Name": "NOCLIENT"}, {_id: 0}).limit(1).pretty().shellPrint()' | grep "TUN" | cut -d: -f2 | sed 's/^ //;s/"//g;s/,//')
+	V_ConIP=$(mongo $BASEM -u $MUser -p $MPass --eval 'db.vpn.find({"VPN_Address": "'$R_VPNSRV'", "Client.Name": "NOCLIENT"}, {_id: 0}).limit(1).pretty().shellPrint()' | grep "ConIP" | cut -d: -f2 | sed 's/^ //;s/"//g;s/,//')
+	V_SNet=$(mongo $BASEM -u $MUser -p $MPass --eval 'db.vpn.find({"VPN_Address": "'$R_VPNSRV'", "Client.Name": "NOCLIENT"}, {_id: 0}).limit(1).pretty().shellPrint()' | grep "ServerNetwork" | cut -d: -f2 | sed 's/^ //;s/"//g;s/,//')
+	V_SMask=$(mongo $BASEM -u $MUser -p $MPass --eval 'db.vpn.find({"VPN_Address": "'$R_VPNSRV'", "Client.Name": "NOCLIENT"}, {_id: 0}).limit(1).pretty().shellPrint()' | grep "ServerMask" | cut -d: -f2 | sed 's/^ //;s/"//g;s/,//')
 	
 	#Colorize 2 "We need to know what is the address of the VPN Server [kingit.ddnsking.com]: "
 	#read R_VPNSRV
@@ -473,7 +346,7 @@ function VerifyAvailableConf() {
 		##Record information on DataBase
 		Colorize 7 "Recording information on DataBase"
 		echo ""
-		mongo $BASEM --eval 'db.vpn.update({"Client.Port": "'$V_Port'"}, {$set: {"Client.Name": "'$R_FQDN'", "Client.Network": "'$R_Network'", "Client.Mask": "'$R_Mask'"}})'
+		mongo $BASEM -u $MUser -p $MPass --eval 'db.vpn.update({"Client.Port": "'$V_Port'"}, {$set: {"Client.Name": "'$R_FQDN'", "Client.Network": "'$R_Network'", "Client.Mask": "'$R_Mask'"}})'
 		echo "Data inserted sucessfully"
 		adjustPortForward
 		gettingStatic
@@ -515,7 +388,7 @@ echo "route add -net $V_SNet netmask $V_SMask gw $(echo $V_ConIP | sed 's/.$/1/'
 #route add -net 10.5.63.0 netmask 255.255.255.0 gw 10.3.0.2 #Este sera o novo padrao da obra
 
 echo "Including VPN on the startup"
-
+sleep 3
 sed -i "s|^exit 0|cd /root/confs/client/\nsh startsrv_$V_Port.sh\n&|" /etc/rc.local
 }
 
@@ -540,7 +413,6 @@ echo "float" >> $ConfFile
 echo "ifconfig $V_ConIP $(echo $V_ConIP | cut -d. -f1-3).1" >> $ConfFile
 echo "secret ../static.key" >> $ConfFile
 
-
 }
 
 function MenuVPN() {
@@ -557,8 +429,8 @@ function MenuVPN() {
 		read R_MVPN
 		
 		case $R_MVPN in
-		1) echo "  VPN Server Creator"; sleep 3; tput clear; T_SRV="vpnserver"; VerifyInternetCon ;;
-		2) echo "  VPN Client Creator"; sleep 3; tput clear; T_SRV="vpnclient"; VerifyInternetCon ;;
+		1) echo "  VPN Server Creator"; sleep 3; tput clear; T_SRV="vpnserver"; InstallVPN ;;
+		2) echo "  VPN Client Creator"; sleep 3; tput clear; T_SRV="vpnclient"; InstallVPN ;;
 		9) echo "  Valew Falow" ; exit;;
 		*) echo "  Please choose a valid option"; sleep 3 ; MenuVPN ;;
 	esac
