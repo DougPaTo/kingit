@@ -4,7 +4,7 @@
 # Description: Necessary functions to other programs
 # Script Maintainer: Rafael
 #
-# Last Updated: August 22th 2015
+# Last Updated: June 3th 2016
 ##################################################
 #Mostrar as cores disponiveis para a funcao Colorize, execute para escolher
 #
