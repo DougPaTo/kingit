@@ -4,7 +4,7 @@
 # Description: Install client and server VPNs
 # Script Maintainer: Rafael
 #
-# Versão: 1.4
+# Versão: 1.5
 # Last Updated: June 1st 2016
 ##################################################
 ###### 			VPNs Matriz e Obras		   ####### 
@@ -54,7 +54,7 @@ BASEM="kingit.ddnsking.com/kingit"
 BANCOM="vpn"
 MUser="kingit"
 MPass="MK1m0n00$"
-DefaultPortSSH="5100"
+DefaultPortSSH=5100
 TestSrvPort=5245 ##Test server
 TestSrvAddress="kingit.ddnsking.com" ##Test server
 #mongo $BASEM -u $MUser -p $MPass -u $MUser -p $MPass --eval 'db.getCollectionNames()' #Verify if the collection exists
@@ -347,7 +347,7 @@ function VerifyAvailableConf() {
 		cat confs/client/acesso_$V_Port.conf | sed "s/remote.*//;/^$/d;s/ifconfig.*/ifconfig $tmp_ip $V_ConIP/" >> confs/server/acesso_$V_Port.conf
 		#echo $tmp_ip
 		#echo $V_ConIP
-		cat confs/client/startsrv_$(echo $V_Port).sh | sed "s/$V_ConIP/$tmp_ip/g;s/route add -net.*/#&/" >>  confs/server/startsrv_$(echo $V_Port).sh
+		cat confs/client/startsrv_$(echo $V_Port).sh | sed "s/$V_ConIP/$tmp_ip/g;s/route add -net $V_SNet netmask $V_SMask gw $(echo $V_ConIP | sed 's/.$/1/') dev $V_Tun/route add -net $R_Network netmask $V_SMask gw $V_ConIP dev $V_Tun/" >>  confs/server/startsrv_$(echo $V_Port).sh
 		Colorize 3 "VPN Configuration for server and client done"
 		echo ""
 		##Record information on DataBase
