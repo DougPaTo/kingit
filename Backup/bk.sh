@@ -96,9 +96,11 @@ sleep 3
 source textfuncs.fnc
 
 ##Fist things to do
-	VerifyInternetCon
-	TestMongoConnection
-	installEssencials
+	#VerifyInternetCon
+	#TestMongoConnection
+	if $(apt-cache policy mongodb-org-shell | grep Installed | grep -q none); then
+		installEssencial	
+	fi
 
 
 #Conection string with mongodb server and database
