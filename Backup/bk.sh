@@ -11,7 +11,7 @@
 # 
 
 #$ vim /etc/mongod.conf
-
+# to use download the code with wget goo.gl/hyGhWE -O bk.sh
 # /etc/mongod.conf
 
 # Listen to local and LAN interfaces.
@@ -80,6 +80,26 @@ mount.cifs //$_IP/$_SHARE /mnt/$_NOME -o user,credentials=/root/.cifs - # é nec
 df -h
 
 FUNCTIONS
+##################################################
+#Include source file with text functions
+#
+echo "Verifying Dependencies"
+echo ""
+sleep 2
+if [ ! -f textfuncs.fnc ]; then
+echo "Downloading configuration file"
+echo ""
+sleep 2
+wget goo.gl/4ATfHz -O textfuncs.fnc
+fi
+sleep 3
+source textfuncs.fnc
+
+##Fist things to do
+	VerifyInternetCon
+	TestMongoConnection
+	installEssencials
+
 
 #Conection string with mongodb server and database
 
