@@ -86,6 +86,7 @@ function InstallVPN() {
 	installEssencials
 	SuggestParameters
 	if [ $T_SRV = "vpnserver" ]; then	
+		sed -i 's|^exit 0|cd /root/confs/server/\n&|' /etc/rc.local
 		FirstLoad
 	else
 		listServerOptions
@@ -261,7 +262,7 @@ function sendServerConfs() {
 	
 	echo "Including Server VPN on the startup"
 	sleep 3
-	ssh -p5100 root@$R_VPNSRV "sed -i 's|^exit 0|cd /root/confs/server/\nsh startsrv_$V_Port.sh\n&|' /etc/rc.local"
+	ssh -p5100 root@$R_VPNSRV "sed -i 's|^exit 0|sh startsrv_$V_Port.sh \&\n&|' /etc/rc.local"
 	
 }
 
