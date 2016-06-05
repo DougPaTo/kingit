@@ -54,6 +54,7 @@ BASEM="kingit.ddnsking.com/kingit"
 BANCOM="vpn"
 MUser="kingit"
 MPass="MK1m0n00$"
+DefaultPortSSH="5100"
 TestSrvPort=5245 ##Test server
 TestSrvAddress="kingit.ddnsking.com" ##Test server
 #mongo $BASEM -u $MUser -p $MPass -u $MUser -p $MPass --eval 'db.getCollectionNames()' #Verify if the collection exists
@@ -258,11 +259,11 @@ function sendServerConfs() {
 	Colorize 3 "It's time to send the confs to the server, please insert the password!" 
 	echo""
 	cd confs/server
-	scp -P5100 acesso_$V_Port.conf startsrv_$(echo $V_Port).sh root@$R_VPNSRV:/root/confs/server/
+	scp -P$DefaultPortSSH acesso_$V_Port.conf startsrv_$(echo $V_Port).sh root@$R_VPNSRV:/root/confs/server/
 	
 	echo "Including Server VPN on the startup"
 	sleep 3
-	ssh -p5100 root@$R_VPNSRV "sed -i 's|^exit 0|sh startsrv_$V_Port.sh \&\n&|' /etc/rc.local"
+	ssh -p$DefaultPortSSH root@$R_VPNSRV "sed -i 's|^exit 0|sh startsrv_$V_Port.sh \&\n&|' /etc/rc.local"
 	
 }
 
