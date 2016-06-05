@@ -125,7 +125,7 @@ function TestMongoConnection(){
 	else
 		Colorize 1 "Connection Fail, please check connectivity with $(echo $BASEM | sed 's_/test__')"
 		echo ""
-		break
+		exit
 	fi
 }
 
