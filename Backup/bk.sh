@@ -85,9 +85,11 @@ FUNCTIONS
 
 
 #BASEM="10.0.99.77/kingit" #Database
-#_BASEM="kingit.ddnsking.com/kingit" #Database
-_BASEM="192.168.0.50/kingit" #Database
+_BASEM="kingit.ddnsking.com/kingit" #Database
+#_BASEM="192.168.0.50/kingit" #Database
 _COLLECTIONM="backup" #Collection
+MUser="kingit"
+MPass="MK1m0n00$"
 _Destination="/backups"
 #MCon="mongo 10.0.99.77/test --eval"
 : << 'DESCR'
@@ -120,7 +122,7 @@ function backup (){ #To use backup NameBkp Source $_Destination#/backups
 		_BKP_Destination=$3
 		tput clear
 		###################################
-		[[ ! -d "$_BKP_Destination/$_BKP_NAME" ]] && { mkdir -p "$_BKP_Destination/$_BKP_NAME/logs"; }
+		[[ ! -d "$_BKP_Destination/$_BKP_NAME/logs" ]] && { mkdir -p "$_BKP_Destination/$_BKP_NAME/logs"; }
 		local T_DAY=`date +%F`
 		local T_HOUR=`date +%H:%M:%S`
 		_LOG="$_BKP_Destination/$_BKP_NAME/logs/$_BKP_NAME~$T_DAY~$T_HOUR.log"
@@ -215,18 +217,18 @@ function captaLog(){ # captaLog $_LOG $_DATE_BEFORE $_BASEM $_COLLECTIONM
 		echo "Gravando na Base"
 		#Verifying if the data alread exists
 		#mongo kingit.ddnsking.com/kingit --eval 'db.backup.find({}, {_id: 0, BkpName: 1}).pretty().shellPrint()'
-		if $(mongo $BASEM --eval 'db.'$COLLECTIONM'.find({}, {"_id": 0, "BkpName": 1}).pretty().shellPrint()' | grep -q $_BKP_NAME); then
+		if $(mongo $BASEM -u $MUser -p $MPass --eval 'db.'$COLLECTIONM'.find({}, {"_id": 0, "BkpName": 1}).pretty().shellPrint()' | grep -q $_BKP_NAME); then
 			echo "Data Exists"
-			mongo $BASEM --eval 'db.'$COLLECTIONM'.update({"BkpName": "'$_BKP_NAME'", "Source": "'$_BKP_Source'"}, {$inc: { "Count": 1 }})'
-			local _LogID=$_BKP_NAME-$(mongo $BASEM --eval 'db.'$COLLECTIONM'.find({"BkpName": "'$_BKP_NAME'"}, {"_id": 0, "Count": 1}).pretty().shellPrint()' | grep Count | cut -d: -f2 | sed 's/ //g;s/}//')
+			mongo $BASEM -u $MUser -p $MPass --eval 'db.'$COLLECTIONM'.update({"BkpName": "'$_BKP_NAME'", "Source": "'$_BKP_Source'"}, {$inc: { "Count": 1 }})'
+			local _LogID=$_BKP_NAME-$(mongo $BASEM -u $MUser -p $MPass --eval 'db.'$COLLECTIONM'.find({"BkpName": "'$_BKP_NAME'"}, {"_id": 0, "Count": 1}).pretty().shellPrint()' | grep Count | cut -d: -f2 | sed 's/ //g;s/}//')
 			echo "Including data to Log"
-			mongo $BASEM --eval 'db.'$COLLECTIONM'.update({"BkpName": "'$_BKP_NAME'", "Source": "'$_BKP_Source'"}, {$push: {"Report": {"Active": "true", "StartDate": "'$DATE_BEFORE'", "EndDate": "'$DATE_AFTER'", "Destination": "'$_BKP_Destination'", "LogID": "'$_LogID'"}}})'
-			mongo $BASEM --eval 'db.log.insert({"_id": "'$_LogID'", "Log":{"NumRegFiles": "'$T_Num_Files'", "NumDir": "'$T_Num_Dir'",	"NewRegFiles": "'$T_Num_New_Files'", "NewDir": "'$T_New_Dir'", "NumDelFiles": "'$T_Num_Del_Files'", "NumDelDir": "'$T_Del_Dir'", "CopyFiles": "'$T_Num_Copy_Files'", "TotalTransf": "'$T_Total_Transf'", "TotalSize": "'$TOT_Size'", "Files": ["Nenhum Arquivo"], "DelFiles": ["Nenhum Deletado"]}})'
+			mongo $BASEM -u $MUser -p $MPass --eval 'db.'$COLLECTIONM'.update({"BkpName": "'$_BKP_NAME'", "Source": "'$_BKP_Source'"}, {$push: {"Report": {"Active": "true", "StartDate": "'$DATE_BEFORE'", "EndDate": "'$DATE_AFTER'", "Destination": "'$_BKP_Destination'", "LogID": "'$_LogID'"}}})'
+			mongo $BASEM -u $MUser -p $MPass --eval 'db.log.insert({"_id": "'$_LogID'", "Log":{"NumRegFiles": "'$T_Num_Files'", "NumDir": "'$T_Num_Dir'",	"NewRegFiles": "'$T_Num_New_Files'", "NewDir": "'$T_New_Dir'", "NumDelFiles": "'$T_Num_Del_Files'", "NumDelDir": "'$T_Del_Dir'", "CopyFiles": "'$T_Num_Copy_Files'", "TotalTransf": "'$T_Total_Transf'", "TotalSize": "'$TOT_Size'", "Files": ["Nenhum Arquivo"], "DelFiles": ["Nenhum Deletado"]}})'
 		else
 			#Fist Time Backup
 			echo "FirstBackup"
-			mongo $BASEM --eval 'db.'$COLLECTIONM'.insert({"BkpName": "'$_BKP_NAME'","Source": "'$_BKP_Source'", "Count": 1, "Report": [{"Active": "true", "StartDate": "'$DATE_BEFORE'", "EndDate": "'$DATE_AFTER'", "Destination": "'$_BKP_Destination'", "LogID": "'$_BKP_NAME-1'"}]})'
-			mongo $BASEM --eval 'db.log.insert({"_id": "'$_BKP_NAME-1'", "Log":{"NumRegFiles": "'$T_Num_Files'", "NumDir": "'$T_Num_Dir'",	"NewRegFiles": "'$T_Num_New_Files'", "NewDir": "'$T_New_Dir'", "NumDelFiles": "'$T_Num_Del_Files'", "NumDelDir": "'$T_Del_Dir'", "CopyFiles": "'$T_Num_Copy_Files'", "TotalTransf": "'$T_Total_Transf'", "TotalSize": "'$TOT_Size'", "Files": ["Nenhum Arquivo"], "DelFiles": ["Nenhum Deletado"]}})'
+			mongo $BASEM -u $MUser -p $MPass --eval 'db.'$COLLECTIONM'.insert({"BkpName": "'$_BKP_NAME'","Source": "'$_BKP_Source'", "Count": 1, "Report": [{"Active": "true", "StartDate": "'$DATE_BEFORE'", "EndDate": "'$DATE_AFTER'", "Destination": "'$_BKP_Destination'", "LogID": "'$_BKP_NAME-1'"}]})'
+			mongo $BASEM -u $MUser -p $MPass --eval 'db.log.insert({"_id": "'$_BKP_NAME-1'", "Log":{"NumRegFiles": "'$T_Num_Files'", "NumDir": "'$T_Num_Dir'",	"NewRegFiles": "'$T_Num_New_Files'", "NewDir": "'$T_New_Dir'", "NumDelFiles": "'$T_Num_Del_Files'", "NumDelDir": "'$T_Del_Dir'", "CopyFiles": "'$T_Num_Copy_Files'", "TotalTransf": "'$T_Total_Transf'", "TotalSize": "'$TOT_Size'", "Files": ["Nenhum Arquivo"], "DelFiles": ["Nenhum Deletado"]}})'
 		fi
 		sleep 10
 		#, "Files": ["Nenhum Arquivo"], "DelFiles": ["Nenhum Deletado"]
@@ -235,28 +237,28 @@ function captaLog(){ # captaLog $_LOG $_DATE_BEFORE $_BASEM $_COLLECTIONM
 		
 		echo "Verificando se existem arquivos novos ou atualizados"
 		for f in $(cat "$LOG" | sed -n '/^>f/p' | sed 's/^>...........//'); do 
-			mongo $BASEM --eval 'db.log.update({"_id": "'$_LogID'"}, {$push: {"Log.Files": "'$f'"}},{upsert: true})'
-			mongo $BASEM --eval 'db.log.update({"_id": "'$_LogID'"}, {$pull: {"Log.Files": "Nenhum Arquivo"}})'
+			mongo $BASEM -u $MUser -p $MPass --eval 'db.log.update({"_id": "'$_LogID'"}, {$push: {"Log.Files": "'$f'"}},{upsert: true})'
+			mongo $BASEM -u $MUser -p $MPass --eval 'db.log.update({"_id": "'$_LogID'"}, {$pull: {"Log.Files": "Nenhum Arquivo"}})'
 		done
 		if [ -z "$(cat "$LOG" | sed -n '/^>f/p' | sed 's/^>...........//')" ];then
 			echo "Nenhum arquivo novo"
-			mongo $BASEM --eval 'db.log.update({"_id": "'$_LogID'"}, {$set: {"Log.Files": ["Nenhum Arquivo"]}})'
+			mongo $BASEM -u $MUser -p $MPass --eval 'db.log.update({"_id": "'$_LogID'"}, {$set: {"Log.Files": ["Nenhum Arquivo"]}})'
 		fi
 		
 		echo "Verificando se existem arquivos deletados"
 		
 		for fd in $(cat "$LOG" | sed -n '/^*deleting/p' | sed 's/*deleting...//'); do 			
-			mongo $BASEM --eval 'db.log.update({"_id": "'$_LogID'"}, {$push: {"Log.DelFiles": "'$fd'"}},{upsert: true})'
-			mongo $BASEM --eval 'db.log.update({"_id": "'$_LogID'"}, {$pull: {"Log.DelFiles": "Nenhum Deletado"}})'
+			mongo $BASEM -u $MUser -p $MPass --eval 'db.log.update({"_id": "'$_LogID'"}, {$push: {"Log.DelFiles": "'$fd'"}},{upsert: true})'
+			mongo $BASEM -u $MUser -p $MPass --eval 'db.log.update({"_id": "'$_LogID'"}, {$pull: {"Log.DelFiles": "Nenhum Deletado"}})'
 		done
 		if [ -z "$(cat "$LOG" | sed -n '/^*deleting/p' | sed 's/*deleting...//')" ]; then
 			echo "Nenhum arquivo Deletado"
-			mongo $BASEM --eval 'db.log.update({"_id": "'$_LogID'"}, {$set: {"Log.DelFiles": ["Nenhum Deletado"]}})'
+			mongo $BASEM -u $MUser -p $MPass --eval 'db.log.update({"_id": "'$_LogID'"}, {$set: {"Log.DelFiles": ["Nenhum Deletado"]}})'
 		fi
 		echo "Salvando a data e hora de finalização do backup"
 		IFS=$SAVEIFS ##Fim do Ajuste entre espacos
 		DATE_AFTER=`date +%F~%H:%M` #Mostra a data e a hora em que foi realizado o backup para envio do assunto do email
-		mongo $BASEM --eval 'db.'$COLLECTIONM'.update({"Report.StartDate": "'$DATE_BEFORE'"}, {$set: {"Report.$.EndDate": "'$DATE_AFTER'"}})'
+		mongo $BASEM -u $MUser -p $MPass --eval 'db.'$COLLECTIONM'.update({"Report.StartDate": "'$DATE_BEFORE'"}, {$set: {"Report.$.EndDate": "'$DATE_AFTER'"}})'
 
 		sleep 5
 		echo "Parabéns você leu tudo"
@@ -314,7 +316,7 @@ SCHEMA
 function takeValuesBk() {
 	local _BKP_NAME=""
 	local _BKP_Source=""
-	local_BKP_Destination=""
+	local _BKP_Destination=""
 SAVEIFS=$IFS ##Ajustando problemas de espaços entre nomes
 IFS=$(echo -en "\n\b")
 	echo -e "Enter the name of Backup: \c"
@@ -345,15 +347,15 @@ IFS=$SAVEIFS ##Fim do Ajuste entre espacos
 }
 
 function getValuesBk() {
-		AllData=($(mongo $_BASEM --eval 'db.'$_COLLECTIONM'.find({}, {"_id": 0, "BkpName": 1}).pretty().shellPrint()' | grep BkpName | cut -d: -f2 | sed 's/ //g;s/"//g;s/}//'))
+		AllData=($(mongo $_BASEM -u $MUser -p $MPass --eval 'db.'$_COLLECTIONM'.find({}, {"_id": 0, "BkpName": 1}).pretty().shellPrint()' | grep BkpName | cut -d: -f2 | sed 's/ //g;s/"//g;s/}//'))
 	if [ -z $1 ]; then
 		[[ ${#AllData[@]} -eq 0 ]] && { echo "No data in database"; sleep 3; takeValuesBk; }
 		echo "				Showing all backups in DataBase			"
 		for i in ${!AllData[@]}; do
-			local _BKP_NAME=$(mongo $_BASEM --eval 'db.'$_COLLECTIONM'.find({"BkpName": "'${AllData[$i]}'"}, {"_id": 0, "BkpName": 1}).pretty().shellPrint()' | grep BkpName | cut -d: -f2 | sed 's/ //g;s/"//g;s/}//')
-			local _BKP_Source=$(mongo $_BASEM --eval 'db.'$_COLLECTIONM'.find({"BkpName": "'${AllData[$i]}'"}, {"_id": 0, "Source": 1}).pretty().shellPrint()' | grep Source | cut -d: -f2 | sed 's/^ *//;s/ *.$//;s/"//g;s/}//')
-			local _BKP_Count=$(mongo $_BASEM --eval 'db.'$_COLLECTIONM'.find({"BkpName": "'${AllData[$i]}'"}, {"_id": 0, "Count": 1}).pretty().shellPrint()' | grep Count | cut -d: -f2 | sed 's/ //g;s/"//g;s/}//')
-			local _BKP_Destination=$(mongo $_BASEM --eval 'db.'$_COLLECTIONM'.find({"BkpName": "'${AllData[$i]}'"}, {"_id": 0, "Report.Destination": 1}).pretty().shellPrint()' | grep -m 1 Destination | cut -d: -f2 | sed 's/^ * //;s/ *$//;s/"//g;s/}//')
+			local _BKP_NAME=$(mongo $_BASEM -u $MUser -p $MPass --eval 'db.'$_COLLECTIONM'.find({"BkpName": "'${AllData[$i]}'"}, {"_id": 0, "BkpName": 1}).pretty().shellPrint()' | grep BkpName | cut -d: -f2 | sed 's/ //g;s/"//g;s/}//')
+			local _BKP_Source=$(mongo $_BASEM -u $MUser -p $MPass --eval 'db.'$_COLLECTIONM'.find({"BkpName": "'${AllData[$i]}'"}, {"_id": 0, "Source": 1}).pretty().shellPrint()' | grep Source | cut -d: -f2 | sed 's/^ *//;s/ *.$//;s/"//g;s/}//')
+			local _BKP_Count=$(mongo $_BASEM -u $MUser -p $MPass --eval 'db.'$_COLLECTIONM'.find({"BkpName": "'${AllData[$i]}'"}, {"_id": 0, "Count": 1}).pretty().shellPrint()' | grep Count | cut -d: -f2 | sed 's/ //g;s/"//g;s/}//')
+			local _BKP_Destination=$(mongo $_BASEM -u $MUser -p $MPass --eval 'db.'$_COLLECTIONM'.find({"BkpName": "'${AllData[$i]}'"}, {"_id": 0, "Report.Destination": 1}).pretty().shellPrint()' | grep -m 1 Destination | cut -d: -f2 | sed 's/^ * //;s/ *$//;s/"//g;s/}//')
 			
 			echo -e "					
 			Backup Number		: $i
@@ -369,9 +371,9 @@ function getValuesBk() {
 			if [[ $_bkpChoice == "n" ]]; then
 				takeValuesBk
 			elif ! [[ $_bkpChoice -gt ${#AllData[@]} ]]; then
-				local _BKP_NAME=$(mongo $_BASEM --eval 'db.'$_COLLECTIONM'.find({"BkpName": "'${AllData[$_bkpChoice]}'"}, {"_id": 0, "BkpName": 1}).pretty().shellPrint()' | grep BkpName | cut -d: -f2 | sed 's/^ *//;s/ *.$//;s/"//g;s/}//')
-				local _BKP_Source=$(mongo $_BASEM --eval 'db.'$_COLLECTIONM'.find({"BkpName": "'${AllData[$_bkpChoice]}'"}, {"_id": 0, "Source": 1}).pretty().shellPrint()' | grep Source | cut -d: -f2 | sed 's/^ *//;s/ *.$//;s/"//g;s/}//')
-				local _BKP_Destination=$(mongo $_BASEM --eval 'db.'$_COLLECTIONM'.find({"BkpName": "'${AllData[$_bkpChoice]}'"}, {"_id": 0, "Report.Destination": 1}).pretty().shellPrint()' | grep -m 1 Destination | cut -d: -f2 | sed 's/^ *//;s/ *.$//;s/"//g;s/}//')
+				local _BKP_NAME=$(mongo $_BASEM -u $MUser -p $MPass --eval 'db.'$_COLLECTIONM'.find({"BkpName": "'${AllData[$_bkpChoice]}'"}, {"_id": 0, "BkpName": 1}).pretty().shellPrint()' | grep BkpName | cut -d: -f2 | sed 's/^ *//;s/ *.$//;s/"//g;s/}//')
+				local _BKP_Source=$(mongo $_BASEM -u $MUser -p $MPass --eval 'db.'$_COLLECTIONM'.find({"BkpName": "'${AllData[$_bkpChoice]}'"}, {"_id": 0, "Source": 1}).pretty().shellPrint()' | grep Source | cut -d: -f2 | sed 's/^ *//;s/ *.$//;s/"//g;s/}//')
+				local _BKP_Destination=$(mongo $_BASEM -u $MUser -p $MPass --eval 'db.'$_COLLECTIONM'.find({"BkpName": "'${AllData[$_bkpChoice]}'"}, {"_id": 0, "Report.Destination": 1}).pretty().shellPrint()' | grep -m 1 Destination | cut -d: -f2 | sed 's/^ *//;s/ *.$//;s/"//g;s/}//')
 				#echo $_BKP_NAME $_BKP_Source $_BKP_Destination
 				#sleep 4
 				#echo "Did the backup"
@@ -385,9 +387,9 @@ function getValuesBk() {
 	else
 		_bkpChoice=$1
 		if ! [[ $_bkpChoice -gt ${#AllData[@]} ]]; then
-			local _BKP_NAME=$(mongo $_BASEM --eval 'db.'$_COLLECTIONM'.find({"BkpName": "'${AllData[$_bkpChoice]}'"}, {"_id": 0, "BkpName": 1}).pretty().shellPrint()' | grep BkpName | cut -d: -f2 | sed 's/^ *//;s/ *.$//;s/"//g;s/}//')
-			local _BKP_Source=$(mongo $_BASEM --eval 'db.'$_COLLECTIONM'.find({"BkpName": "'${AllData[$_bkpChoice]}'"}, {"_id": 0, "Source": 1}).pretty().shellPrint()' | grep Source | cut -d: -f2 | sed 's/^ *//;s/ *.$//;s/"//g;s/}//')
-			local _BKP_Destination=$(mongo $_BASEM --eval 'db.'$_COLLECTIONM'.find({"BkpName": "'${AllData[$_bkpChoice]}'"}, {"_id": 0, "Report.Destination": 1}).pretty().shellPrint()' | grep -m 1 Destination | cut -d: -f2 | sed 's/^ *//;s/ *.$//;s/"//g;s/}//')
+			local _BKP_NAME=$(mongo $_BASEM -u $MUser -p $MPass --eval 'db.'$_COLLECTIONM'.find({"BkpName": "'${AllData[$_bkpChoice]}'"}, {"_id": 0, "BkpName": 1}).pretty().shellPrint()' | grep BkpName | cut -d: -f2 | sed 's/^ *//;s/ *.$//;s/"//g;s/}//')
+			local _BKP_Source=$(mongo $_BASEM -u $MUser -p $MPass --eval 'db.'$_COLLECTIONM'.find({"BkpName": "'${AllData[$_bkpChoice]}'"}, {"_id": 0, "Source": 1}).pretty().shellPrint()' | grep Source | cut -d: -f2 | sed 's/^ *//;s/ *.$//;s/"//g;s/}//')
+			local _BKP_Destination=$(mongo $_BASEM -u $MUser -p $MPass --eval 'db.'$_COLLECTIONM'.find({"BkpName": "'${AllData[$_bkpChoice]}'"}, {"_id": 0, "Report.Destination": 1}).pretty().shellPrint()' | grep -m 1 Destination | cut -d: -f2 | sed 's/^ *//;s/ *.$//;s/"//g;s/}//')
 			echo "Starting Backup: "$_BKP_NAME" Source: "$_BKP_Source" Destination: "$_BKP_Destination
 			sleep 8
 			#echo "Did the backup"
@@ -416,7 +418,7 @@ getValuesBk $1
 function Relatorio () {
 	##Recuperar todos os dados para geração dos relatórios
 	#echo "Relatório por email"
-	mongo $BASEM --eval 'printjson(db.'$BANCOM'.find({} ,{_id: 0, "BkpName": 1, "Active": 1, "Report.StartDate": 1, "Report.EndDate": 1, "Report.NumRegFiles": 1, "Report.NumDir": 1, "Report.NewRegFiles": 1, "Report.NewDir": 1, "Report.NumDelFiles": 1, "Report.NumDelDir": 1, "Report.CopyFiles": 1, "Report.TotalTransf": 1, "Report.TotalSize": 1}).sort({"Report.StartDate":-1}).pretty().shellPrint())'	
+	mongo $BASEM -u $MUser -p $MPass --eval 'printjson(db.'$BANCOM'.find({} ,{_id: 0, "BkpName": 1, "Active": 1, "Report.StartDate": 1, "Report.EndDate": 1, "Report.NumRegFiles": 1, "Report.NumDir": 1, "Report.NewRegFiles": 1, "Report.NewDir": 1, "Report.NumDelFiles": 1, "Report.NumDelDir": 1, "Report.CopyFiles": 1, "Report.TotalTransf": 1, "Report.TotalSize": 1}).sort({"Report.StartDate":-1}).pretty().shellPrint())'	
 	
 }
 
