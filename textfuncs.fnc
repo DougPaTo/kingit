@@ -135,6 +135,7 @@ function SuggestParameters() {
 #
 local ipFinal=$1
 [ $# -eq 0 ] && { local ipFinal=16; }
+[ $INTERFACE == "" ] && { INTERFACE="eth0"; }
 #Verifying if the computer has a fixed ip address
 	if $(cat /etc//network/interfaces | grep -q "inet static"); then
 		echo "This system already have a static ip address"
