@@ -133,7 +133,8 @@ function SuggestParameters() {
 ##################################################
 #Suggesting Default Parameters
 #
-
+local ipFinal=$1
+[ $# -eq 0 ] && { local ipFinal=16; }
 #Verifying if the computer has a fixed ip address
 	if $(cat /etc//network/interfaces | grep -q "inet static"); then
 		echo "This system already have a static ip address"
@@ -163,7 +164,7 @@ function SuggestParameters() {
 		#Getting the ip address
 		R_Gat=$(route -n | grep UG | grep $INTERFACE | tr -s ' ' | cut -d' ' -f2)
 		R_Interface=$(route -n | grep UG | grep $INTERFACE | tr -s ' ' | cut -d' ' -f8)
-		R_IP="$(route -n | grep UG | grep $INTERFACE | tr -s ' ' | cut -d' ' -f 2 | cut -d. -f1-3).16"
+		R_IP="$(route -n | grep UG | grep $INTERFACE | tr -s ' ' | cut -d' ' -f 2 | cut -d. -f1-3).$ipFinal"
 		R_Mask=$(ifconfig | grep -m 1 $(route -n | grep UG | grep $INTERFACE | tr -s ' ' | cut -d' ' -f 2 | cut -d. -f1-3) | sed 's/.*Mask://')
 		R_Network="$(route -n | grep UG | grep $INTERFACE | tr -s ' ' | cut -d' ' -f 2 | cut -d. -f1-3).0"
 		R_Broad="$(route -n | grep UG | grep $INTERFACE | tr -s ' ' | cut -d' ' -f 2 | cut -d. -f1-3).255"
