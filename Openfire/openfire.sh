@@ -4,10 +4,10 @@
 # Description: Openfire installer
 # Script Maintainer: Rafael
 #
-# Versão: 0.1
+# Versão: 0.2
 # Last Updated: June 8th 2016
 ##################################################
-# 
+# to download the script use wget goo.gl/7TjdJE -O openfire.sh
 : << 'Description'
 	This is the installer of the openfire server on debian jessie 8.
 Description
@@ -39,9 +39,15 @@ echo ""
 sleep 4
 ##Install essencial packets
 echo "Updating apt base"
-	apt-get update &> /dev/null
+echo "deb http://ppa.launchpad.net/webupd8team/java/ubuntu xenial main" | tee /etc/apt/sources.list.d/webupd8team-java.list
+echo "deb-src http://ppa.launchpad.net/webupd8team/java/ubuntu xenial main" | tee -a /etc/apt/sources.list.d/webupd8team-java.list
+apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys EEA14886
+echo oracle-java8-installer shared/accepted-oracle-license-v1-1 select true | /usr/bin/debconf-set-selections
+apt-get update
+#apt-get update &> /dev/null
 echo "Installing essencial programs"
-aptitude install -y mysql-server apache2 php5 php5-mysql libmysql-java libapache2-mod-auth-mysql openjdk-7-jre 
+apt-get install oracle-java8-installer oracle-java8-set-default mysql-server apache2 php5 php5-mysql libmysql-java
+#aptitude install -y mysql-server apache2 php5 php5-mysql libmysql-java openjdk-8-jre 
 
 Colorize 2  "Please insert the Mysql Password here: "
 echo ""
