@@ -102,18 +102,19 @@ function VerifyInternetCon(){
 function installEssencials() {
 	Colorize 3 "Instaling programs if needed"
 	echo ""
-	echo "Including mongodb repo"
-	apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv EA312927
-	echo "deb http://repo.mongodb.org/apt/debian wheezy/mongodb-org/3.2 main" | tee /etc/apt/sources.list.d/mongodb-org-3.2.list	
-	echo "Updating apt base"
-	apt-get update &> /dev/null
-	
-	##Essencials for OpenVPN
-	echo "Installing MongoDB and OpenVpn"
-	apt-get install -y mongodb-org-shell openvpn iperf rssh
-	##SuggestParameters ##It is for checking if there is a fixed ip address, or to setup one if it's necessary
-	
-	##Essencials for bk
+	if $(apt-cache policy mongodb-org-shell | grep Installed | grep -q none) || [ ! -f /usr/bin/mongo ]; then
+		echo "Including mongodb repo"
+		apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv EA312927
+		echo "deb http://repo.mongodb.org/apt/debian wheezy/mongodb-org/3.2 main" | tee /etc/apt/sources.list.d/mongodb-org-3.2.list	
+		echo "Updating apt base"
+		apt-get update &> /dev/null
+		
+		##Essencials for OpenVPN
+		echo "Installing MongoDB and OpenVpn"
+		apt-get install -y mongodb-org-shell openvpn iperf rssh
+		##SuggestParameters ##It is for checking if there is a fixed ip address, or to setup one if it's necessary
+	fi
+		##Essencials for bk
 }
 
 function TestMongoConnection(){
