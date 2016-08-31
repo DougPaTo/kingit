@@ -612,20 +612,20 @@ function BDC () {
 		echo 'exibindo Resolv antes de provisionar'
 		cat /etc/resolv.conf
 		sleep 3
-		read -p "   Pressione [Enter] Para continuar"
+		#read -p "   Pressione [Enter] Para continuar"
 		sleep 3
 		Provisionamento
 		sleep 3
 		echo "exibindo o Resolv Pela ultima Vez"
 		cat /etc/resolv.conf
-		read -p "   Pressione [Enter] Para continuar"
+		#read -p "   Pressione [Enter] Para continuar"
 		sleep 5
 		AjustaResolv
 		sleep 3
 		tput clear
 		configuraSMB
 		sleep 3
-		#IniciaSamba
+		IniciaSamba
 		AlteraNSSwitch
 		sleep 3
 		#PermissoesMember
