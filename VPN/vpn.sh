@@ -269,7 +269,7 @@ function sendServerConfs() {
 }
 
 function listServerOptions() {
-	varOpt=($(mongo $BASEM -u $MUser -p $MPass --eval 'db.vpn.distinct("VPN_Address")' | grep "\[" | sed 's/\[ //;s/\ ]//'))
+	varOpt=($(mongo $BASEM -u $MUser -p $MPass --eval 'db.vpn.distinct("VPN_Address")' | grep "\[" | sed 's/\[ //;s/\ ]//' | sed 's/"//g'))
 
 	CenterTitle "These are the servers available choose one: "
 	echo ""
