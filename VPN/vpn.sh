@@ -50,10 +50,11 @@ source textfuncs.fnc
 ###### Starting global variables
 # 
 INTERFACE="eth"
-BASEM="kingit.ddnsking.com/kingit"
-BANCOM="vpn"
+BASEM="kingit.ddnsking.com/kingit" #Base where mongodb is installed
+BANCOM="vpn" #Collection
 MUser="kingit"
 MPass="MK1m0n00$"
+#TestServer for validation purpose
 DefaultPortSSH=5100
 TestSrvPort=5245 ##Test server
 TestSrvAddress="kingit.ddnsking.com" ##Test server
@@ -268,7 +269,7 @@ function sendServerConfs() {
 }
 
 function listServerOptions() {
-	varOpt=($(mongo $BASEM -u $MUser -p $MPass --eval 'db.vpn.find({"Client.Name": "NOCLIENT"}, {_id: 0, VPN_Address: 1}).limit(1).pretty().shellPrint()' | grep { | sed 's/{ //;s/ }//' | cut -d: -f2 | sed 's/ //g;s/"//g;s/,//'))
+	varOpt=($(mongo $BASEM -u $MUser -p $MPass --eval 'db.vpn.distinct("VPN_Address")' | grep "\[" | sed 's/\[ //;s/\ ]//'))
 
 	CenterTitle "These are the servers available choose one: "
 	echo ""
