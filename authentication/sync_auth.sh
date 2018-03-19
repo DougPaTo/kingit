@@ -7,17 +7,25 @@ LOG="sync_auth.log"
 client_list="client_list.txt"
 user_keys="users_ssh-keys.txt"
 kingit_sec_key="credentials_king/id_rsa"
-keys_path="/keys/authorized_keys"
+keys_path=".ssh/authorized_keys"
+king_user="kingit-sec"
 
 # criar authenticated_keys padrao
 echo $(date +%F)
 cat $client_list | while read client; do
   echo "Sincronizando Cliente: $client"
-  echo "limpando chaves anteriores"
-  ssh -p${PORT} -q -i ${kingit_sec_key} kingit-sec@$client "/bin/rm -rf $keys_path" < /dev/null
   cat $user_keys | while read user_key; do
     username_key=$(echo $user_key | cut -d" " -f3 | cut -d@ -f1)
     echo "incluindo chave para $username_key"
-    ssh -p${PORT} -q -i ${kingit_sec_key} kingit-sec@$client "echo $user_key >> $keys_path;if grep -x '^${username_key}:' /etc/passwd; then echo 'ja existe'; else sudo /usr/sbin/adduser --disabled-password --gecos '' ${username_key}; fi" < /dev/null
+    # create a new user, create the .ssh folder and give the right permissions, insert the authorized_keys inside.
+    ssh -p${PORT} -q -i ${kingit_sec_key} ${king_user}@$client "if ! grep -q '^${username_key}:' /etc/passwd; then \
+      sudo /usr/sbin/adduser --disabled-password --gecos '' ${username_key}; \
+      sudo /bin/mkdir -p /home/${username_key}/.ssh; \
+      sudo /usr/bin/touch /home/${username_key}/${keys_path}; \
+      sudo chmod -R 777 /home/${username_key}/${keys_path}; \
+      sudo echo $user_key >> /home/${username_key}/${keys_path}; \
+      sudo chown -R ${username_key}:${username_key} /home/${username_key}/.ssh; \
+      sudo chmod -R 700 /home/${username_key}/.ssh; \
+    fi" < /dev/null
   done
 done
