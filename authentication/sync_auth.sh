@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# you need to run https://goo.gl/nFoAG8 first
+# wget goo.gl/nFoAG8 -O base_config.sh
+# bash base_config.sh
+
 shopt -s lastpipe
 PORT=3333
 LOG="sync_auth.log"

