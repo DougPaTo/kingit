@@ -4,12 +4,11 @@ MAINTAINER contact.rafaelpr@gmail.com
 # Use baseimage-docker's init system.
 CMD ["/sbin/my_init"]
 
-ENV \
-  SAMBA_VER="4.8.0"
-  SAMBA_FOLDER="samba-${SAMBA_VER}"
-  SAMBA_FILE="samba-${SAMBA_VER}.tar.gz"
+ENV SAMBA_VER="4.8.0" 
+ENV SAMBA_FOLDER="samba-${SAMBA_VER}" 
+ENV SAMBA_FILE="samba-${SAMBA_VER}.tar.gz"
 
-RUN apt install -y acl attr autoconf bind9utils bison build-essential \
+RUN apt-get update && apt-get install -y acl attr autoconf bind9utils bison build-essential \
   debhelper dnsutils docbook-xml docbook-xsl flex gdb libjansson-dev krb5-user \
   libacl1-dev libaio-dev libarchive-dev libattr1-dev libblkid-dev libbsd-dev \
   libcap-dev libcups2-dev libgnutls28-dev libgpgme11-dev libjson-perl \
@@ -19,9 +18,9 @@ RUN apt install -y acl attr autoconf bind9utils bison build-essential \
   python3-dnspython python-gpgme python3-gpgme python-markdown python3-markdown \
   python3-dev xsltproc zlib1g-dev wget
   
-RUN wget -O /tmp/ https://download.samba.org/pub/samba/stable/${SAMBA_FILE} && tar -xvf /tmp/${SAMBA_FILE}
+RUN cd /tmp && wget -O ${SAMBA_FILE} https://download.samba.org/pub/samba/stable/${SAMBA_FILE} && tar -xvf ${SAMBA_FILE}
 
-RUN /tmp/${SAMBA_FOLDER}/configure --prefix=/opt/samba --enable-debug --enable-selftest && make && make install
+RUN cd /tmp/${SAMBA_FOLDER}/ && ./configure --prefix=/opt/samba --enable-debug --enable-selftest && make && make install
 
 RUN export PATH=/opt/samba/bin/:/opt/samba/sbin/:$PATH
 
@@ -32,7 +31,9 @@ COPY id_rsa.pub /tmp/id_rsa.pub
 
 RUN cat /tmp/id_rsa.pub >> /root/.ssh/authorized_keys && rm -f /tmp/id_rsa.pub
 
-WORKDIR /opt
+VOLUME ["/opt/samba"]
+
+WORKDIR /opt/samba
 
 # Clean up APT when done.
 RUN apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
