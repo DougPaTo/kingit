@@ -216,7 +216,10 @@ function Provisionamento(){
 		Colorize 2 "Inicio do Provisionamento de PDC"
 		echo ""
 		sleep 2
+		[ -f /etc/samba/smb.conf ] && rm -rf /etc/samba/smb.conf
 		samba-tool domain provision --use-rfc2307 --realm=$C_FQDN --server-role=dc --dns-backend=SAMBA_INTERNAL --domain=$R_Domain --adminpass=$R_Passwd
+		# C_FQDN domain in UpperCase VAD.LOCAL
+		# R_Domain vad
 		sleep 2
 		Colorize 2 "Ajustando o Forwarder do samba"
 		echo ""
@@ -726,6 +729,7 @@ function ConfiguraMake () {
 			echo ""
 			sleep 3
 			./configure --prefix=/opt/samba --enable-debug --enable-selftest
+			# 'configure' finished successfully
 	elif [ $TIPO = "M" ]; then
 			Colorize 2 "Inicinado configuração de Samba MDC"
 			echo ""
@@ -742,7 +746,9 @@ function ConfiguraMake () {
 	echo ""
 	sleep 3
 	make
+	# 'build' finished successfully
 	make install
+	# 'install' finished successfully
 	sleep 3
 	Colorize 2 "Ajustes no krb5.conf"
 	echo ""
@@ -954,7 +960,7 @@ function IniciaSamba () {
 		sleep 4
 		Colorize 2 "Verificando se o serviço está em pé"
 		echo ""
-		ps -aux | grep samba
+		ps aux | grep samba
 		sleep 4
 		tput clear
 		Colorize 2 "Incluindo inicializacao automatica"
@@ -1088,6 +1094,9 @@ function TestaServer(){
 	sleep 3
 	Colorize 2 "Mostrando compartilhamentos"
 	echo ""
+	############################################################
+	#Teste aqui
+
 	smbclient -L //$R_Host.$R_FQDN -U%
 	sleep 3
 	Colorize 2 "Listando o conteudo da pasta netlogon de rede"
