@@ -7,8 +7,8 @@
 # Versão: 2.5
 # Last Updated: March 13th 2016
 ##################################################
-###### Instalação do Samba4 no Debian 8.30 ####### 
-# 
+###### Instalação do Samba4 no Debian 8.30 #######
+#
 : <<'DESC'
 Sistema desenvolvido para instalar complentamente um servidor DC em Samba4 no Debian 8.10 Jessie
 Este sistema não foi testado em versões mais novas e/ou anteriores, portanto não me responsabilizo por erros.
@@ -17,7 +17,7 @@ No encurtador de links utilize o seguinte comando para baixar o código wget goo
 para executar faça bash samba4deploy.sh e siga os passos da instalação.
 
 Instalação do Debian 8.10
-Particionamento Necessário: 
+Particionamento Necessário:
 / - 15Gb
 /kit - 50Gb
 /dados - 1Tera ou mais
@@ -54,17 +54,63 @@ fi
 sleep 3
 source textfuncs.fnc
 ##################################################
+##################################################
+# Fix rc.local on debian 9 systems
+#
+# Creating rc-local.service
+cat <<EOF >>/etc/systemd/system/rc-local.service
+[Unit]
+Description=/etc/rc.local
+ConditionPathExists=/etc/rc.local
+
+[Service]
+Type=forking
+ExecStart=/etc/rc.local start
+TimeoutSec=0
+StandardOutput=tty
+RemainAfterExit=yes
+SysVStartPriority=99
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+#Creating rc.local
+cat <<EOF >>/etc/rc.local
+#!/bin/sh -e
+#
+# rc.local
+#
+# This script is executed at the end of each multiuser runlevel.
+# Make sure that the script will "exit 0" on success or any other
+# value on error.
+#
+# In order to enable or disable this script just change the execution
+# bits.
+#
+# By default this script does nothing.
+
+exit 0
+EOF
+# Changing permissions
+chmod +x /etc/rc.local
+# Enabling script on boot
+systemctl enable rc-local
+# Start script
+systemctl start rc-local.service
+
+##################################################
 #Descricao do sistema e Observações Importantes
 #
 CenterTitle "Samba4Deploy Criação de Servidores Linux"
 Colorize 6 "
 
-	Olá, 
-	Você esta prestes a iniciar o sistema de deploy e compilação 
-	automatizado de servidores Linux Kingit, você poderá criar 
-	e linkar servidores de sua matriz e filiais, formando 
+	Olá,
+	Você esta prestes a iniciar o sistema de deploy e compilação
+	automatizado de servidores Linux Kingit, você poderá criar
+	e linkar servidores de sua matriz e filiais, formando
 	um poderoso e confiável ambiente de redundância.
-	
+
 	O que estamos automatizando?
 	- Instalação de Samba 4 Domain Controller
 	- Instalação de Segundo AD linkado
@@ -73,7 +119,7 @@ Colorize 6 "
 	- Configuração conforme dados recolhidos
 	- Criação de estrutura de Pastas
 	- Configuração de Lixeira e Auditoria
-	
+
 "
 Colorize 1 "	Sistema Homologado apenas para Linux Debian Jessie 8.10"
 echo "
@@ -85,17 +131,26 @@ function InstalaEssenciais(){
 	Colorize 2 "Atualizando Repositórios"
 	echo ""
 	sleep 2
-	apt-get update 
+	apt-get update
 	tput clear
 	Colorize 2 "Instalando itens essenciais"
 	echo ""
-	sleep 2	
-	export DEBIAN_FRONTEND=noninteractive #Desta maneira qualquer interactive post-install não irá parar o processo. 
+	sleep 2
+	export DEBIAN_FRONTEND=noninteractive #Desta maneira qualquer interactive post-install não irá parar o processo.
 	##################################################
 	#Lista de itens essenciais para funcionamento do Samba 4 tanto PDC quanto BDC
 	#
-	#apt-get install -y build-essential libacl1-dev libattr1-dev libblkid-dev libreadline-dev python-dev python-dnspython gdb pkg-config libgnutls28-dev libpopt-dev libldap2-dev dnsutils libbsd-dev attr krb5-user docbook-xsl libcups2-dev acl chkconfig ntp rssh	
-	apt-get install -y acl attr autoconf bison build-essential debhelper dnsutils docbook-xml docbook-xsl flex gdb krb5-user libacl1-dev libaio-dev libattr1-dev libblkid-dev libbsd-dev libcap-dev libcups2-dev libgnutls28-dev libjson-perl libldap2-dev libncurses5-dev libpam0g-dev libparse-yapp-perl libpopt-dev libreadline-dev perl perl-modules pkg-config python-all-dev python-dev python-dnspython python-crypto xsltproc zlib1g-dev ntp rssh
+	#apt-get install -y build-essential libacl1-dev libattr1-dev libblkid-dev libreadline-dev python-dev python-dnspython gdb pkg-config libgnutls28-dev libpopt-dev libldap2-dev dnsutils libbsd-dev attr krb5-user docbook-xsl libcups2-dev acl chkconfig ntp rssh
+	# apt-get install -y acl attr autoconf bison build-essential debhelper dnsutils docbook-xml docbook-xsl flex gdb krb5-user libacl1-dev libaio-dev libattr1-dev libblkid-dev libbsd-dev libcap-dev libcups2-dev libgnutls28-dev libjson-perl libldap2-dev libncurses5-dev libpam0g-dev libparse-yapp-perl libpopt-dev libreadline-dev perl perl-modules pkg-config python-all-dev python-dev python-dnspython python-crypto xsltproc zlib1g-dev ntp rssh
+	apt-get install acl attr autoconf bind9utils bison build-essential \
+  debhelper dnsutils docbook-xml docbook-xsl flex gdb libjansson-dev krb5-user \
+  libacl1-dev libaio-dev libarchive-dev libattr1-dev libblkid-dev libbsd-dev \
+  libcap-dev libcups2-dev libgnutls28-dev libgpgme11-dev libjson-perl \
+  libldap2-dev libncurses5-dev libpam0g-dev libparse-yapp-perl \
+  libpopt-dev libreadline-dev nettle-dev perl perl-modules-5.24 pkg-config \
+  python-all-dev python-crypto python-dbg python-dev python-dnspython \
+  python3-dnspython python-gpg python3-gpg python-markdown python3-markdown \
+  python3-dev xsltproc zlib1g-dev libsystemd-dev libkrb5-dev krb5-kdc
 	tput clear
 	Colorize 2 "Alterando o Time/Zone para Sao Paulo"
 	echo ""
@@ -103,15 +158,15 @@ function InstalaEssenciais(){
 	echo "America/Sao_Paulo" > /etc/timezone
 	dpkg-reconfigure -f noninteractive tzdata
 	tput clear
-	Colorize 2 "Download do Samba 4.3.0"
+	Colorize 2 "Download do Samba 4.8.1"
 	echo ""
 	sleep 2
-	wget http://ftp.samba.org/pub/samba/stable/samba-4.3.0.tar.gz
+	wget http://ftp.samba.org/pub/samba/stable/samba-4.8.1.tar.gz
 	sleep 2
 	Colorize 2 "Descompactando..."
 	echo ""
 	sleep 2
-	gzip -dc samba-4.3.0.tar.gz | tar x
+	gzip -dc samba-4.8.1.tar.gz | tar x
 	Colorize 2 "Descompactado com sucesso"
 	echo ""
 	if [ $TIPO = "M" ] || [ $TIPO = "B" ]; then
@@ -155,7 +210,7 @@ function Ajustefstab(){ #Alteração do sistema de montagem do disco no / e post
 }
 
 function Provisionamento(){
-	
+
 	if [ $TIPO = "P" ]; then
 		Colorize 2 "Inicio do Provisionamento de PDC"
 		echo ""
@@ -191,7 +246,7 @@ function MDC () {
 	##################################################
 	#Levantamento de dados Iniciais, exibição
 	#
-	CenterTitle "Configurações iniciais para o FileServer MDC" 
+	CenterTitle "Configurações iniciais para o FileServer MDC"
 	tput cup 5 2
 	Colorize 6 "Digite o nome deste servidor (hostname) ex.: servidor : "
 	tput cup 6 2
@@ -215,8 +270,8 @@ function MDC () {
 	Colorize 6 "Usuario Administrator do AD : "
 	tput cup 15 2
 	Colorize 6 "Senha do Administrator do AD : "
-	
-	
+
+
 	##################################################
 	##Captação de Dados##
 	#
@@ -262,17 +317,17 @@ function MDC () {
 	tput cup 15 2
 	Colorize 6 "Senha do Administrator do AD : "
 	read R_Passwd
-	
+
 	##################################################
 	##Setando o DNS do Domínio
 	#
 	R_DNS=$R_DOMIP
-	
+
 	##################################################
 	#Ajustando FQDN para ficar minusculo
 	#
 	R_FQDN=$(echo $R_FQDN | tr '[:upper:]' '[:lower:]')
-	
+
 	#################################################
 	#Ajustando FQDN para ficar maiusculo
 	#
@@ -285,27 +340,27 @@ function MDC () {
 	##Seta o Tipo de Operação
 	#
 	TIPO="M"
-	
+
 	##################################################
 	##Conferência dos Dados
 	#
 	CenterTitle "Conferencia dos Dados"
 	echo "
-  
+
   Hostname:	$R_Host
   IP Local:	$R_IP
   Mascara:	$R_Mask
   Gateway:	$R_Gat
   DNS:		$R_DNS
-  Dominio FQDN:	$R_FQDN	
+  Dominio FQDN:	$R_FQDN
   IP Servidor:	$R_DOMIP
-  
-  
-  
+
+
+
 	"
 	Colorize 4 "Confirmar (s/n): "
 	read R_OK
-	
+
 	if [ $R_OK = "s" ];then
 		echo "Dados Confirmados, seguindo a instalação"
 		echo ""
@@ -336,14 +391,14 @@ function MDC () {
 	else
 		echo "Voltando para a configuração de MDC"; sleep 3 ; MDC
 	fi
-	
+
 }
 
 function PDC () {
 	##################################################
 	#Levantamento de dados Iniciais, exibição
 	#
-	CenterTitle "Configurações iniciais para o servidor PDC" 
+	CenterTitle "Configurações iniciais para o servidor PDC"
 	tput cup 5 2
 	Colorize 6 "Digite o nome do servidor (hostname) ex.: servidor : "
 	tput cup 6 2
@@ -382,7 +437,7 @@ function PDC () {
 	#Separando apenas o Domain
 	#
 	R_Domain=$(echo $C_FQDN | cut -d. -f1)
-	
+
 	tput cup 8 2
 	Colorize 6 "Digite o endereço de IP para o servidor. ex.: 192.168.253.12 : "
 	read R_IP
@@ -444,7 +499,7 @@ function PDC () {
 	"
 	Colorize 4 "Confirmar (s/n): "
 	read R_OK
-	
+
 	if [ $R_OK = "s" ];then
 		echo "Dados Confirmados, seguindo a instalação"
 		echo ""
@@ -476,14 +531,14 @@ function PDC () {
 	else
 		echo "Voltando para a configuração de PDC"; sleep 3 ; PDC
 	fi
-	
+
 }
 
 function BDC () {
 	##################################################
 	#Levantamento de dados Iniciais, exibição
 	#
-	CenterTitle "Configurações iniciais para o BDC" 
+	CenterTitle "Configurações iniciais para o BDC"
 	tput cup 5 2
 	Colorize 6 "Digite o nome deste servidor (hostname) ex.: servidor : "
 	tput cup 6 2
@@ -505,8 +560,8 @@ function BDC () {
 	Colorize 6 "IP do servidor que deseja ingressar. ex.: 192.168.253.12 : "
 	tput cup 14 2
 	Colorize 6 "Senha do Administrator do AD : "
-	
-	
+
+
 	##################################################
 	##Captação de Dados##
 	#
@@ -549,17 +604,17 @@ function BDC () {
 	tput cup 14 2
 	Colorize 6 "Senha do Administrator do AD : "
 	read R_Passwd
-	
+
 	##################################################
 	##Setando o DNS do Domínio
 	#
 	R_DNS=$R_DOMIP
-	
+
 	##################################################
 	#Ajustando FQDN para ficar minusculo
 	#
 	R_FQDN=$(echo $R_FQDN | tr '[:upper:]' '[:lower:]')
-	
+
 	#################################################
 	#Ajustando FQDN para ficar maiusculo
 	#
@@ -572,27 +627,27 @@ function BDC () {
 	##Seta o Tipo de Operação
 	#
 	TIPO="B"
-	
+
 	##################################################
 	##Conferência dos Dados
 	#
 	CenterTitle "Conferencia dos Dados"
 	echo "
-  
+
   Hostname:	$R_Host
   IP Local:	$R_IP
   Mascara:	$R_Mask
   Gateway:	$R_Gat
   DNS:		$R_DNS
-  Dominio FQDN:	$R_FQDN	
+  Dominio FQDN:	$R_FQDN
   IP Servidor:	$R_DOMIP
-  
-  
-  
+
+
+
 	"
 	Colorize 4 "Confirmar (s/n): "
 	read R_OK
-	
+
 	if [ $R_OK = "s" ];then
 		echo "Dados Confirmados, seguindo a instalação"
 		echo ""
@@ -640,7 +695,7 @@ function BDC () {
 	else
 		echo "Voltando para a configuração de MDC"; sleep 3 ; MDC
 	fi
-	
+
 }
 
 function AjustaResolv () {
@@ -663,7 +718,7 @@ function AjustaHosts () {
 }
 
 function ConfiguraMake () {
-	cd /root/samba-4.3.0/
+	cd /root/samba-4.8.1/
 	sleep 2
 	if [ $TIPO = "P" ]; then
 			Colorize 2 "Inicinado configuração de Samba PDC"
@@ -681,7 +736,7 @@ function ConfiguraMake () {
 			sleep 3
 			./configure --prefix=/opt/samba --enable-debug --enable-selftest
 	fi
-	
+
 	Colorize 2 "Iniciarei o processo mais lento de toda a instalação, vamos montar os pacotes"
 	echo ""
 	sleep 3
@@ -711,25 +766,25 @@ function AlteraInterfaces () {
 	/etc/init.d/networking restart
 }
 
-function AjustesIniciais(){ 
+function AjustesIniciais(){
 	#Chama Função para alteração do dispositivo de rede para ip fixo
 	#
 	if [ $TIPO = "P" ];then
 		AlteraInterfaces
-		
+
 		Colorize 2 "Alterando o arquivo hostname (o nome da maquina)"
 		echo ""
 		sleep 2
 		echo $R_Host > /etc/hostname
 		sleep 2
-		hostname $R_Host #Seta o nome da maquina sem reiniciar	
+		hostname $R_Host #Seta o nome da maquina sem reiniciar
 		#Chama Função para ajuste do resolv.conf
 		#
 		AjustaResolv
 		#Chama Função para ajuste do hosts
 		#
 		AjustaHosts
-		
+
 		Colorize 2 "Inclusão dos dados no profile"
 		echo ""
 		sleep 2
@@ -741,8 +796,8 @@ function AjustesIniciais(){
 		sleep 2
 		sed -i "s/^Port 22/Port 3851/;s/^PermitRootLogin/#&/" /etc/ssh/sshd_config
 		/etc/init.d/ssh restart
-		
-		
+
+
 		Colorize 2 "Ajustes no Limits.conf"
 		echo ""
 		sleep 2
@@ -757,20 +812,20 @@ function AjustesIniciais(){
 		ConfiguraMake
 	elif [ $TIPO = "M" ];then
 		AlteraInterfaces
-		
+
 		Colorize 2 "Alterando o arquivo hostname (o nome da maquina)"
 		echo ""
 		sleep 2
 		echo $R_Host > /etc/hostname
 		sleep 2
-		hostname $R_Host #Seta o nome da maquina sem reiniciar	
+		hostname $R_Host #Seta o nome da maquina sem reiniciar
 		#Chama Função para ajuste do resolv.conf
 		#
 		AjustaResolv
 		#Chama Função para ajuste do hosts
 		#
 		AjustaHosts
-		
+
 		Colorize 2 "Inclusão dos dados no profile"
 		echo ""
 		sleep 2
@@ -784,23 +839,23 @@ function AjustesIniciais(){
 		/etc/init.d/ssh restart
 		#Chama Função para Configuracao dos Pacotes
 		ConfiguraMake
-		
+
 	elif [ $TIPO = "B" ];then
 		AlteraInterfaces
-		
+
 		Colorize 2 "Alterando o arquivo hostname (o nome da maquina)"
 		echo ""
 		sleep 2
 		echo $R_Host > /etc/hostname
 		sleep 2
-		hostname $R_Host #Seta o nome da maquina sem reiniciar	
+		hostname $R_Host #Seta o nome da maquina sem reiniciar
 		#Chama Função para ajuste do resolv.conf
 		#
 		AjustaResolv
 		#Chama Função para ajuste do hosts
 		#
 		AjustaHosts
-		
+
 		Colorize 2 "Inclusão dos dados no profile"
 		echo ""
 		sleep 2
@@ -812,8 +867,8 @@ function AjustesIniciais(){
 		sleep 2
 		sed -i "s/^Port 22/Port 3851/;s/^PermitRootLogin/#&/" /etc/ssh/sshd_config
 		/etc/init.d/ssh restart
-		
-		
+
+
 		Colorize 2 "Ajustes no Limits.conf"
 		echo ""
 		sleep 2
@@ -859,7 +914,7 @@ function CriaSmb () {
   winbind refresh tickets = Yes
   winbind cache time = 40
 
-"	> /opt/samba/etc/smb.conf        
+"	> /opt/samba/etc/smb.conf
 #[kit]
   #path = /kit
   #read only = no
@@ -888,7 +943,7 @@ function IniciaSamba () {
 		echo ""
 		sleep 4
 		sed -i "s_^exit 0_/opt/samba/sbin/winbindd\n/opt/samba/sbin/nmbd\n/opt/samba/sbin/smbd\n\n&_" /etc/rc.local
-		
+
 	elif [ $TIPO = "P" ] || [ $TIPO = "B" ]; then
 		tput clear
 		Colorize 2 "Subindo Serviço do Samba"
@@ -906,8 +961,8 @@ function IniciaSamba () {
 		sleep 4
 		sed -i "s_^exit 0_/opt/samba/sbin/samba\n\n&_" /etc/rc.local
 	fi
-	
-	
+
+
 }
 
 function PermissoesMember () {
@@ -949,7 +1004,7 @@ function configuraSMB(){
 	#
 	Colorize 2 "  Criando estrutura de pastas seguindo o padrão Kingit"
 	echo "
-	
+
 	Do que estamos falando?
 	As pastas de lixeira, logs, atalhos padrões e pastas de atalhos
 	agora estão separadas dos dados dos clientes
@@ -957,11 +1012,11 @@ function configuraSMB(){
 	/kit/pastas
 	/kit/log
 	/kit/atalhos_padroes
-	
+
 	A Pasta de Dados conterá apenas os dados dos clientes
-	
+
 	/dados/
-	
+
 	"
 	if [ $TIPO = "M" ]; then
 		CriaSmb
@@ -971,7 +1026,7 @@ function configuraSMB(){
 		sleep 3
 		sed -i "25r /root/smbauditrecycle" /opt/samba/etc/smb.conf
 		sleep 15
-		
+
 	elif [ $TIPO = "B" ]; then
 		tput clear
 		Colorize 2 "Inclusão da base de configuracao do smb.conf na configuracao basica"
@@ -981,7 +1036,7 @@ function configuraSMB(){
 		#sed -i "25r /root/smbauditrecycle" /opt/samba/etc/smb.conf
 		sleep 15
 	fi
-	
+
 	sleep 15
 	mkdir -p /kit
 	mkdir -p /kit/lixeira
@@ -989,14 +1044,14 @@ function configuraSMB(){
 	mkdir -p /kit/log
 	mkdir -p /kit/atalhos_padroes
 	mkdir -p /dados/
-	
+
 	#LOG do samba
 	Colorize 2 "Incluindo instruções para salvar o log de acessos"
 	echo ""
 	sleep 2
 	echo "local3.notice /kit/log/samba-full_audit.log" >> /etc/rsyslog.conf
 	sleep 3
-	
+
 }
 
 function ConfigACL () {
@@ -1005,7 +1060,7 @@ function ConfigACL () {
 }
 
 function TestaServer(){
-	
+
 	#Colorize 2 "Exibindo Configurações Locais: resolv.conf"
 	#echo ""
 	#cat /etc/resolv.conf
@@ -1045,13 +1100,13 @@ function TestaServer(){
 	host -t SRV _kerberos._udp.$R_FQDN
 	host -t A $R_Host.$R_FQDN
 	sleep 10
-	
+
 	CenterTitle "Seu sistema foi instalado e configurado corretamente"
 	echo "
-  
+
   Hostname:	$R_Host
   Senha:	$R_Passwd
-  Dominio FQDN:	$R_FQDN	
+  Dominio FQDN:	$R_FQDN
   IP Servidor:	$R_IP
   Mascara:	$R_Mask
   Gateway:	$R_Gat
@@ -1063,7 +1118,7 @@ function CriaCompartilhamento() {
 	##################################################
 	#Levantamento de dados Iniciais, exibição
 	#
-	CenterTitle "Configuração de Compartilhamento" 
+	CenterTitle "Configuração de Compartilhamento"
 	tput cup 5 2
 	Colorize 1 "
 	Importante lembrar que para que o sistema funcione corretamente
@@ -1071,12 +1126,12 @@ function CriaCompartilhamento() {
 	Caso você deseje que este compartilhamento seja disponibilizado
 	automaticamente	para os usuários, não se esqueça de:
 	- Dar as permissões para o grupo na pasta criada,
-	- Criar o atalho dentro da pasta atalhos padrões 
+	- Criar o atalho dentro da pasta atalhos padrões
 	- Criar a GPO com permissão para o grupo.
-	
+
 	"
 	Colorize 6 "Digite o nome do compartilhamento que deseja : "
-		
+
 	##################################################
 	##Captação de Dados##
 	#
@@ -1087,9 +1142,9 @@ function CriaCompartilhamento() {
 	Caso você deseje que este compartilhamento seja disponibilizado
 	automaticamente	para os usuários, não se esqueça de:
 	- Dar as permissões para o grupo na pasta criada,
-	- Criar o atalho dentro da pasta atalhos padrões 
+	- Criar o atalho dentro da pasta atalhos padrões
 	- Criar a GPO com permissão para o grupo.
-	
+
 	"
 	Colorize 6 "Digite o nome do compartilhamento que deseja : "
 	read R_Compart
@@ -1097,16 +1152,16 @@ function CriaCompartilhamento() {
 	##Seta o Tipo de Operação
 	#
 	TIPO="C"
-	
+
 	CenterTitle "Conferencia dos Dados"
 	echo "
-  
+
   Pasta Local:	/dados/$R_Compart
- 
+
 	"
 	Colorize 4 "Confirmar (s/n): "
 	read R_OK
-	
+
 	if [ $R_OK = "s" ];then
 		Colorize 6 "Criando as pastas e o compartilhamento $R_Compart"
 		sleep 3
@@ -1120,7 +1175,7 @@ function CriaCompartilhamento() {
 		Colorize 6 "Compartilhamento Criado com sucesso"
 		echo ""
 	fi
-	
+
 }
 
 function menuPrincipal () {
@@ -1129,16 +1184,16 @@ function menuPrincipal () {
 	Colorize 4 "O que deseja fazer?"
 	echo "
   1. Criar um novo servidor autonomo PDC (Primary Domain Controller).
-  2. Criar um BDC FileServer de um servidor Samba 4 existente. 
+  2. Criar um BDC FileServer de um servidor Samba 4 existente.
   3. File Server MEMBRO de um AD Samba ou Windows Existente
   4. Incluir novo HD no Servidor Samba4.
   5. Criar Compartilhamento em FileServer
   9. Sair
-  
+
   Qual a sua escolha:"
 	tput cup 13 21
 	read R_Mnu
-	
+
 	case $R_Mnu in
 		1) PDC ;;
 		2) BDC ;;
@@ -1154,5 +1209,5 @@ menuPrincipal
 
 if [ $TIPO = "M" ] || [ $TIPO = "B" ]; then
 	rm /root/smbauditrecycle
-	rm -R /root/samba-4.3.0/
+	rm -R /root/samba-4.8.1/
 fi
