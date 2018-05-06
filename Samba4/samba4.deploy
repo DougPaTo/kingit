@@ -53,6 +53,11 @@ sleep 2
 wget goo.gl/klNlVy -O textfuncs.fnc
 fi
 sleep 3
+if [ ! -f textfuncs.fnc ]; then
+echo "Arquivo de configuração não foi baixado."
+else
+sleep 5
+fi
 source textfuncs.fnc
 ##################################################
 ##################################################
@@ -220,6 +225,7 @@ function Provisionamento(){
 		samba-tool domain provision --use-rfc2307 --realm=$C_FQDN --server-role=dc --dns-backend=SAMBA_INTERNAL --domain=$R_Domain --adminpass=$R_Passwd
 		# C_FQDN domain in UpperCase VAD.LOCAL
 		# R_Domain vad
+		# R_Passwd K1m0n00$
 		sleep 2
 		Colorize 2 "Ajustando o Forwarder do samba"
 		echo ""
@@ -509,26 +515,32 @@ function PDC () {
 		echo ""
 		sleep 3
 		InstalaEssenciais
+		read -p "[Finish installing essentials]"
 		sleep 3
 		AjustesIniciais
+		read -p "[done with initial adjustments]"
 		/etc/init.d/networking restart
 		sleep 3
 		tput clear
 		Ajustefstab
+		read -p "[done with fstab adjustments]"
 		sleep 5
 		AjustaResolv
 		sleep 3
 		tput clear
 		Provisionamento
+		read -p "[done with provision]"
 		sleep 3
 		echo "exibindo o Resolv Pela ultima Vez"
 		cat /etc/resolv.conf
 		sleep 5
 		AjustaResolv
 		IniciaSamba
+		read -p "[Samba started]"
 		sleep 3
 		tput clear
 		TestaServer
+		read -p "[Testing done]"
 		Colorize 1 "Configurações prontas reiniciando o computador em 30 segundos"
 		sleep 30
 		reboot
@@ -1083,6 +1095,10 @@ function TestaServer(){
 	echo ""
 	sleep 3
 	nslookup $R_FQDN
+	#######################
+	#Teste retornando erro
+
+
 	Colorize 2 "Logando na seção como Administrator. "
 	echo ""
 	sleep 3
