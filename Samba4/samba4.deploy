@@ -54,9 +54,8 @@ wget goo.gl/klNlVy -O textfuncs.fnc
 fi
 sleep 3
 if [ ! -f textfuncs.fnc ]; then
-echo "Arquivo de configuração não foi baixado."
-else
-sleep 5
+echo "Arquivo de configuração não foi baixado. Getting out of here"
+exit 1
 fi
 source textfuncs.fnc
 ##################################################
