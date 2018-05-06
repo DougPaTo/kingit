@@ -59,10 +59,15 @@ exit 1
 fi
 source textfuncs.fnc
 ##################################################
+
+function fixRclocal() {
 ##################################################
 # Fix rc.local on debian 9 systems
 #
 # Creating rc-local.service
+
+if [ ! -f /etc/rc.local ]; then
+
 cat <<EOF >>/etc/systemd/system/rc-local.service
 [Unit]
 Description=/etc/rc.local
@@ -97,12 +102,14 @@ cat <<EOF >>/etc/rc.local
 
 exit 0
 EOF
-# Changing permissions
-chmod +x /etc/rc.local
-# Enabling script on boot
-systemctl enable rc-local
-# Start script
-systemctl start rc-local.service
+	# Changing permissions
+	chmod +x /etc/rc.local
+	# Enabling script on boot
+	systemctl enable rc-local
+	# Start script
+	systemctl start rc-local.service
+fi
+}
 
 ##################################################
 #Descricao do sistema e Observações Importantes
@@ -407,6 +414,8 @@ function PDC () {
 	##################################################
 	#Levantamento de dados Iniciais, exibição
 	#
+
+: <<'COMENTARIO'
 	CenterTitle "Configurações iniciais para o servidor PDC"
 	tput cup 5 2
 	Colorize 6 "Digite o nome do servidor (hostname) ex.: servidor : "
@@ -494,6 +503,22 @@ function PDC () {
 	#
 	CenterTitle "Conferencia dos Dados"
 	echo "
+COMENTARIO
+# manual set of variables
+TIPO="P"
+R_Host="dc"
+R_Passwd="K1m0n00$"
+R_FQDN="vad.local"
+C_FQDN="VAD.LOCAL" # uppercase
+R_Domain="VAD"
+R_IP="192.168.0.12"
+R_Mask="255.255.255.0"
+R_Broad="192.168.0.255"
+R_Network="192.168.0.0"
+R_Gat="192.168.0.1"
+R_DNS="8.8.8.8"
+R_DOMIP="192.168.0.12"
+
 
 	Installation Directory:            /opt/samba/
 	AD DC Hostname:                    $R_Host
@@ -1204,6 +1229,8 @@ function CriaCompartilhamento() {
 }
 
 function menuPrincipal () {
+	# Fixing rc.local on debian9
+	fixRclocal
 	CenterTitle "Samba 4 Deploy"
 	tput cup 5 2
 	Colorize 4 "O que deseja fazer?"
