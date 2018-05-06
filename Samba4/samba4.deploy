@@ -163,7 +163,7 @@ function InstalaEssenciais(){
   python-all-dev python-crypto python-dbg python-dev python-dnspython \
   python3-dnspython python-gpg python3-gpg python-markdown python3-markdown \
   python3-dev xsltproc zlib1g-dev libsystemd-dev libkrb5-dev krb5-kdc
-	tput clear
+	tput rssh clear
 	Colorize 2 "Alterando o Time/Zone para Sao Paulo"
 	echo ""
 	sleep 2
@@ -844,8 +844,8 @@ function AjustesIniciais(){
 		sleep 2
 #############################################################
 #O arquivo sshd_config não é encontrado
-#		sed -i "s/^Port 22/Port 3851/;s/^PermitRootLogin/#&/" /etc/ssh/sshd_config
-		sed -i "s/^Port 22/Port 3851/;s/^PermitRootLogin/#&/" /etc/ssh/ssh_config
+		sed -i "s/^Port 22/Port 3851/;s/^PermitRootLogin/#&/" /etc/ssh/sshd_config
+#		sed -i "s/^Port 22/Port 3851/;s/^PermitRootLogin/#&/" /etc/ssh/ssh_config
 		/etc/init.d/ssh restart
 
 : <<'NAOSEISEPRECISA'
@@ -889,8 +889,8 @@ NAOSEISEPRECISA
 		sleep 2
 #############################################################
 #O arquivo sshd_config não é encontrado
-#		sed -i "s/^Port 22/Port 3851/;s/^PermitRootLogin/#&/" /etc/ssh/sshd_config
-		sed -i "s/^Port 22/Port 3851/;s/^PermitRootLogin/#&/" /etc/ssh/ssh_config
+		sed -i "s/^Port 22/Port 3851/;s/^PermitRootLogin/#&/" /etc/ssh/sshd_config
+#		sed -i "s/^Port 22/Port 3851/;s/^PermitRootLogin/#&/" /etc/ssh/ssh_config
 		/etc/init.d/ssh restart
 		#Chama Função para Configuracao dos Pacotes
 		ConfiguraMake
@@ -922,8 +922,8 @@ NAOSEISEPRECISA
 		sleep 2
 #############################################################
 #O arquivo sshd_config não é encontrado
-#		sed -i "s/^Port 22/Port 3851/;s/^PermitRootLogin/#&/" /etc/ssh/sshd_config
-		sed -i "s/^Port 22/Port 3851/;s/^PermitRootLogin/#&/" /etc/ssh/ssh_config
+		sed -i "s/^Port 22/Port 3851/;s/^PermitRootLogin/#&/" /etc/ssh/sshd_config
+#		sed -i "s/^Port 22/Port 3851/;s/^PermitRootLogin/#&/" /etc/ssh/ssh_config
 		/etc/init.d/ssh restart
 
 
