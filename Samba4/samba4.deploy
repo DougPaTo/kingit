@@ -498,11 +498,6 @@ function PDC () {
 	##Seta o Tipo de Operação
 	#
 	TIPO="P"
-	##################################################
-	##Conferência dos Dados
-	#
-	CenterTitle "Conferencia dos Dados"
-	echo "
 COMENTARIO
 # manual set of variables
 TIPO="P"
@@ -520,6 +515,11 @@ R_DNS="8.8.8.8"
 R_DOMIP="192.168.0.12"
 
 
+##################################################
+##Conferência dos Dados
+#
+CenterTitle "Conferencia dos Dados"
+echo "
 	Installation Directory:            /opt/samba/
 	AD DC Hostname:                    $R_Host
 	AD DNS Domain Name:                $R_FQDN
