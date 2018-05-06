@@ -179,6 +179,8 @@ function InstalaEssenciais(){
 	echo ""
 	sleep 2
 	gzip -dc samba-4.8.1.tar.gz | tar x
+ #TODO include verification of Checksum MD5
+
 	Colorize 2 "Descompactado com sucesso"
 	echo ""
 	if [ $TIPO = "M" ] || [ $TIPO = "B" ]; then
@@ -764,7 +766,10 @@ function ConfiguraMake () {
 			Colorize 2 "Inicinado configuração de Samba PDC"
 			echo ""
 			sleep 3
-			./configure --prefix=/opt/samba --enable-debug --enable-selftest
+			./configure --prefix=/opt/samba --enable-debug --enable-selftest 2>&1 | tee /root/logs/smb_config.log
+######################################################
+# Paramos aqui
+#			if [ ]
 			# 'configure' finished successfully
 	elif [ $TIPO = "M" ]; then
 			Colorize 2 "Inicinado configuração de Samba MDC"
@@ -837,10 +842,13 @@ function AjustesIniciais(){
 		Colorize 2 "Ajustes no RSSH, alteração da porta para 3851"
 		echo ""
 		sleep 2
-		sed -i "s/^Port 22/Port 3851/;s/^PermitRootLogin/#&/" /etc/ssh/sshd_config
+#############################################################
+#O arquivo sshd_config não é encontrado
+#		sed -i "s/^Port 22/Port 3851/;s/^PermitRootLogin/#&/" /etc/ssh/sshd_config
+		sed -i "s/^Port 22/Port 3851/;s/^PermitRootLogin/#&/" /etc/ssh/ssh_config
 		/etc/init.d/ssh restart
 
-
+: <<'NAOSEISEPRECISA'
 		Colorize 2 "Ajustes no Limits.conf"
 		echo ""
 		sleep 2
@@ -852,6 +860,7 @@ function AjustesIniciais(){
 		echo ""
 		sleep 2
 		#Chama Função para Configuracao dos Pacotes
+NAOSEISEPRECISA
 		ConfiguraMake
 	elif [ $TIPO = "M" ];then
 		AlteraInterfaces
@@ -878,7 +887,10 @@ function AjustesIniciais(){
 		Colorize 2 "Ajustes no RSSH, alteração da porta para 3851"
 		echo ""
 		sleep 2
-		sed -i "s/^Port 22/Port 3851/;s/^PermitRootLogin/#&/" /etc/ssh/sshd_config
+#############################################################
+#O arquivo sshd_config não é encontrado
+#		sed -i "s/^Port 22/Port 3851/;s/^PermitRootLogin/#&/" /etc/ssh/sshd_config
+		sed -i "s/^Port 22/Port 3851/;s/^PermitRootLogin/#&/" /etc/ssh/ssh_config
 		/etc/init.d/ssh restart
 		#Chama Função para Configuracao dos Pacotes
 		ConfiguraMake
@@ -908,7 +920,10 @@ function AjustesIniciais(){
 		Colorize 2 "Ajustes no RSSH, alteração da porta para 3851"
 		echo ""
 		sleep 2
-		sed -i "s/^Port 22/Port 3851/;s/^PermitRootLogin/#&/" /etc/ssh/sshd_config
+#############################################################
+#O arquivo sshd_config não é encontrado
+#		sed -i "s/^Port 22/Port 3851/;s/^PermitRootLogin/#&/" /etc/ssh/sshd_config
+		sed -i "s/^Port 22/Port 3851/;s/^PermitRootLogin/#&/" /etc/ssh/ssh_config
 		/etc/init.d/ssh restart
 
 
@@ -1135,7 +1150,7 @@ function TestaServer(){
 	Colorize 2 "Mostrando compartilhamentos"
 	echo ""
 	############################################################
-	#Teste aqui
+	#
 
 	smbclient -L //$R_Host.$R_FQDN -U%
 	sleep 3
@@ -1231,6 +1246,7 @@ function CriaCompartilhamento() {
 function menuPrincipal () {
 	# Fixing rc.local on debian9
 	fixRclocal
+	[ ! -d /root/logs/ ] && mkdir -p /root/logs
 	CenterTitle "Samba 4 Deploy"
 	tput cup 5 2
 	Colorize 4 "O que deseja fazer?"
