@@ -163,7 +163,7 @@ function InstalaEssenciais(){
   python-all-dev python-crypto python-dbg python-dev python-dnspython \
   python3-dnspython python-gpg python3-gpg python-markdown python3-markdown \
   python3-dev xsltproc zlib1g-dev libsystemd-dev libkrb5-dev krb5-kdc
-	tput rssh ssh winbind smbclient krb5-config clear
+	tput rssh ssh winbind smbclient krb5-config net-tools clear
 	Colorize 2 "Alterando o Time/Zone para Sao Paulo"
 	echo ""
 	sleep 2
