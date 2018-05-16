@@ -250,6 +250,8 @@ function Provisionamento(){
 		sleep 2
 		#samba-tool domain provision --use-rfc2307 --realm=$C_FQDN --server-role=dc --dns-backend=SAMBA_INTERNAL --domain=$R_Domain --adminpass=$R_Passwd
 		#samba-tool domain join $R_FQDN DC -Uadministrator --realm=$R_FQDN --dns-backend=SAMBA_INTERNAL --option="interfaces=lo eth0" --option="bind interfaces only=yes" --password=$R_Passwd
+##ERRO uanble to determine the domainsid can not enforce iniqueness constraint local domainsids
+
 		samba-tool domain join $R_FQDN DC -Uadministrator --realm=$R_FQDN --dns-backend=SAMBA_INTERNAL --password=$R_Passwd
 		sleep 2
 		Colorize 2 "Ajustando o Forwarder do samba"
@@ -695,35 +697,44 @@ function BDC () {
 		echo ""
 		sleep 3
 		InstalaEssenciais
+		read -p "[InstalaEssenciais ended]"
 		sleep 3
 		AjustesIniciais
+		read -p "[AjustesIniciais ended]"
 		sleep 3
 		tput clear
 		Ajustefstab
+		read -p "[Ajustefstab ended]"
 		sleep 3
 		tput clear
 		echo 'exibindo Resolv antes de provisionar'
 		cat /etc/resolv.conf
 		sleep 5
 		AjustaResolv
+		read -p "[AjustaResolv ended]"
 		echo 'exibindo Resolv antes de provisionar'
 		cat /etc/resolv.conf
 		sleep 3
 		#read -p "   Pressione [Enter] Para continuar"
 		sleep 3
 		Provisionamento
+		read -p "[Provisionamento ended]"
 		sleep 3
 		echo "exibindo o Resolv Pela ultima Vez"
 		cat /etc/resolv.conf
 		#read -p "   Pressione [Enter] Para continuar"
 		sleep 5
 		AjustaResolv
+		read -p "[AjustaResolv ended]"
 		sleep 3
 		tput clear
 		configuraSMB
+		read -p "[configuraSMB ended]"
 		sleep 3
 		IniciaSamba
+		read -p "[IniciaSamba ended]"
 		AlteraNSSwitch
+		read -p "[AlteraNSSwitch ended]"
 		sleep 3
 		#PermissoesMember
 		sleep 3
@@ -731,6 +742,7 @@ function BDC () {
 		sleep 3
 		tput clear
 		TestaServer
+		read -p "[TestaServer ended]"
 		Colorize 1 "Configurações prontas reiniciando o computador em 30 segundos"
 		sleep 30
 		reboot
@@ -1141,6 +1153,8 @@ function TestaServer(){
 	Colorize 2 "Logando na seção como Administrator. "
 	echo ""
 	sleep 3
+##################################################
+#ERRO Não foi possível iniciar como Administrator
 	echo $R_Passwd | kinit administrator@$C_FQDN
 	Colorize 2 "Exibe o Ticket Recem Criado"
 	echo ""
