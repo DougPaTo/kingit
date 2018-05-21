@@ -9,6 +9,9 @@
 ##################################################
 ###### Instalação do Samba4 no Debian 9.10 #######
 #
+
+exec 2>&1 | tee smb4_install.log
+
 : <<'DESC'
 New design for the debian 9.4.0:
 
@@ -96,6 +99,7 @@ while true; do
 	fi
 done
 sleep 3
+echo "Including text functions"
 source textfuncs.fnc
 ##################################################
 
@@ -308,7 +312,7 @@ local ipFinal=$1
 
 		Colorize 2 "Are this parameters correct? (Y/N): "
 		read R_ANSWER
-		if [ $R_ANSWER = "Y" ]||[ $R_ANSWER = "y" ]; then
+		if [[ $R_ANSWER =~ ^[Yy] ]]; then
 			Colorize 3 "Setting up the information on this server"
 			echo ""
 			sleep 2
@@ -317,12 +321,12 @@ local ipFinal=$1
 			echo ""
 			sleep 2
 			/etc/init.d/networking restart
-			echo $R_FQDN > /etc/hostname
+			echo $R_Host > /etc/hostname
 			sleep 2
-			hostname $R_FQDN
+			hostname $R_Host
 			
 		else
-			Colorize 1 "Bye Bye"
+			Colorize 1 "Cya"
 			echo ""
 			sleep 2
 			exit
@@ -1490,4 +1494,4 @@ menuPrincipal
 if [ $TIPO = "M" ] || [ $TIPO = "B" ]; then
 	rm /root/smbauditrecycle
 	rm -R /root/samba-4.8.1/
-fi
+fi 
