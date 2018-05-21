@@ -152,17 +152,6 @@ function InstalaEssenciais(){
 	##################################################
 	#Lista de itens essenciais para funcionamento do Samba 4 tanto PDC quanto BDC
 	#
-
-	sleep 2
-	#wget http://ftp.samba.org/pub/samba/stable/samba-4.8.1.tar.gz
-	wget https://download.samba.org/pub/samba/stable/samba-4.8.2.tar.gz
-	sleep 2
-	Colorize 2 "Descompactando..."
-	echo ""
-	sleep 2
-	gzip -dc samba-4.8.1.tar.gz | tar x
-	sleep 2
-
 	#apt-get install -y build-essential libacl1-dev libattr1-dev libblkid-dev libreadline-dev python-dev python-dnspython gdb pkg-config libgnutls28-dev libpopt-dev libldap2-dev dnsutils libbsd-dev attr krb5-user docbook-xsl libcups2-dev acl chkconfig ntp rssh
 	# apt-get install -y acl attr autoconf bison build-essential debhelper dnsutils docbook-xml docbook-xsl flex gdb krb5-user libacl1-dev libaio-dev libattr1-dev libblkid-dev libbsd-dev libcap-dev libcups2-dev libgnutls28-dev libjson-perl libldap2-dev libncurses5-dev libpam0g-dev libparse-yapp-perl libpopt-dev libreadline-dev perl perl-modules pkg-config python-all-dev python-dev python-dnspython python-crypto xsltproc zlib1g-dev ntp rssh
 	apt-get -y install acl attr autoconf bind9utils bison build-essential \
@@ -185,12 +174,12 @@ function InstalaEssenciais(){
 	echo ""
 	sleep 2
 	#wget http://ftp.samba.org/pub/samba/stable/samba-4.8.1.tar.gz
-#	wget https://download.samba.org/pub/samba/stable/samba-4.8.2.tar.gz
-#	sleep 2
-#	Colorize 2 "Descompactando..."
-#	echo ""
-#	sleep 2
-#	gzip -dc samba-4.8.1.tar.gz | tar x
+	wget https://download.samba.org/pub/samba/stable/samba-4.8.1.tar.gz
+	sleep 2
+	Colorize 2 "Descompactando..."
+	echo ""
+	sleep 2
+	gzip -dc samba-4.8.1.tar.gz | tar x
  #TODO include verification of Checksum MD5
 
 	Colorize 2 "Descompactado com sucesso"
