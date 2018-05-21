@@ -157,7 +157,7 @@ function InstalaEssenciais(){
 	apt-get -y install acl attr autoconf bind9utils bison build-essential \
   debhelper dnsutils docbook-xml docbook-xsl flex gdb libjansson-dev krb5-user \
   libacl1-dev libaio-dev libarchive-dev libattr1-dev libblkid-dev libbsd-dev \
-  libcap-dev libcups2-dev libgnutls28-dev libgpgme11-dev libjson-perl nss_wins \
+  libcap-dev libcups2-dev libgnutls28-dev libgpgme11-dev libjson-perl \
   libldap2-dev libncurses5-dev libpam0g-dev libparse-yapp-perl \
   libpopt-dev libreadline-dev nettle-dev perl perl-modules-5.24 pkg-config \
   python-all-dev python-crypto python-dbg python-dev python-dnspython \
@@ -247,6 +247,9 @@ function Provisionamento(){
 	elif [ $TIPO = "B" ]; then
 		Colorize 2 "Inicio do Provisionamento de BDC"
 		echo ""
+
+		sleep 2
+		systemctl start smbd.service
 		sleep 2
 		#samba-tool domain provision --use-rfc2307 --realm=$C_FQDN --server-role=dc --dns-backend=SAMBA_INTERNAL --domain=$R_Domain --adminpass=$R_Passwd
 		#samba-tool domain join $R_FQDN DC -Uadministrator --realm=$R_FQDN --dns-backend=SAMBA_INTERNAL --option="interfaces=lo eth0" --option="bind interfaces only=yes" --password=$R_Passwd
