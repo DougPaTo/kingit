@@ -157,7 +157,7 @@ function InstalaEssenciais(){
 	apt-get -y install acl attr autoconf bind9utils bison build-essential \
   debhelper dnsutils docbook-xml docbook-xsl flex gdb libjansson-dev krb5-user \
   libacl1-dev libaio-dev libarchive-dev libattr1-dev libblkid-dev libbsd-dev \
-  libcap-dev libcups2-dev libgnutls28-dev libgpgme11-dev libjson-perl \
+  libcap-dev libcups2-dev libgnutls28-dev libgpgme11-dev libjson-perl nss_wins \
   libldap2-dev libncurses5-dev libpam0g-dev libparse-yapp-perl \
   libpopt-dev libreadline-dev nettle-dev perl perl-modules-5.24 pkg-config \
   python-all-dev python-crypto python-dbg python-dev python-dnspython \
@@ -675,6 +675,12 @@ function BDC () {
 	##################################################
 	##Conferência dos Dados
 	#
+	#
+	#
+	#
+	#
+	#
+	#
 	CenterTitle "Conferencia dos Dados"
 	echo "
 
@@ -689,6 +695,15 @@ function BDC () {
 
 
 	"
+	#  Hostname:	dc
+	#  IP Local:	192.168.0.15
+	#  Mascara:	255.255.255.0
+	#  Gateway:	192.168.0.1
+	#  DNS:		192.168.0.12
+	#  Dominio FQDN:	vad.local
+	#  IP Servidor:	192.168.0.12
+
+
 	Colorize 4 "Confirmar (s/n): "
 	read R_OK
 
