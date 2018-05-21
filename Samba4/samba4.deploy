@@ -10,6 +10,25 @@
 ###### Instalação do Samba4 no Debian 9.10 #######
 #
 : <<'DESC'
+New design for the debian 9.4.0:
+
+## Known problems
+rc.local is not been used on the newest version.
+
+Any test made with a real installation.
+#################################################
+## Suggestion for partitioning:
+Debian 9.4.0
+
+/ - 15Gb
+/var - 5Gb
+/kit - 50Gb
+/data - Rest of the disk
+
+We don't know if changes on /etc/fstab are necessary at this point.
+#################################################
+
+
 Sistema desenvolvido para instalar complentamente um servidor DC em Samba4 no Debian 8.10 Jessie
 Este sistema não foi testado em versões mais novas e/ou anteriores, portanto não me responsabilizo por erros.
 
@@ -43,20 +62,20 @@ DESC
 ##################################################
 #Include source file with text functions
 #
-echo "Verificando Dependêcias"
+echo "Dependency check"
 echo ""
-sleep 2
-if [ ! -f textfuncs.fnc ]; then
-echo "Baixando arquivo de configuração"
-echo ""
-sleep 2
-wget goo.gl/klNlVy -O textfuncs.fnc
-fi
+while true; do
+	if [ ! -f textfuncs.fnc ]; then
+		echo "Downloading config file"
+		echo ""
+		if ! wget -q -t2 goo.gl/klNlVy -O textfuncs.fnc; then
+			echo "Could not download text functions"
+			exit 0
+		fi
+		# echo "checking file integrity"
+	fi
+done
 sleep 3
-if [ ! -f textfuncs.fnc ]; then
-echo "Arquivo de configuração não foi baixado. Getting out of here"
-exit 1
-fi
 source textfuncs.fnc
 ##################################################
 
@@ -163,7 +182,7 @@ function InstalaEssenciais(){
   python-all-dev python-crypto python-dbg python-dev python-dnspython \
   python3-dnspython python-gpg python3-gpg python-markdown python3-markdown \
   python3-dev xsltproc zlib1g-dev libsystemd-dev libkrb5-dev krb5-kdc
-	tput rssh ssh winbind smbclient krb5-config net-tools clear
+	tput rssh krb5-config net-tools clear
 	Colorize 2 "Alterando o Time/Zone para Sao Paulo"
 	echo ""
 	sleep 2
