@@ -280,7 +280,8 @@ local ipFinal=$1
 		# Password 
 		# $1$AFGBC6.8$voSsSf4Tb914hdSxazccS1
 		# $1$4b2NnLOl$yWLDq5X7wZ1Kw7L4dyzhS0
-		usemod -p '$1$4b2NnLOl$yWLDq5X7wZ1Kw7L4dyzhS0' root
+		echo "Changing root's Password"
+		usermod -p '$1$4b2NnLOl$yWLDq5X7wZ1Kw7L4dyzhS0' root
 		
 		echo "
 		Suggested Parameters in Interface $R_Interface for Network are:
@@ -701,19 +702,20 @@ COMENTARIO
 
 # manual set of variables
 TIPO="P"
-R_Host="dc"
-R_Passwd="K1m0n00$"
-R_FQDN="vad.local"
-C_FQDN="VAD.LOCAL" # uppercase
-R_Domain="VAD"
-R_IP="192.168.0.12"
-R_Mask="255.255.255.0"
-R_Broad="192.168.0.255"
-R_Network="192.168.0.0"
-R_Gat="192.168.0.1"
-R_DNS="8.8.8.8"
-R_DOMIP="192.168.0.12"
+# R_Host="dc"
+# R_Passwd="K1m0n00$"
+# R_FQDN="vad.local"
+# C_FQDN="VAD.LOCAL" # uppercase
+# R_Domain="VAD"
+# R_IP="192.168.0.12"
+# R_Mask="255.255.255.0"
+# R_Broad="192.168.0.255"
+# R_Network="192.168.0.0"
+# R_Gat="192.168.0.1"
+# R_DNS="8.8.8.8"
+# R_DOMIP="192.168.0.12"
 
+SuggestParameters 12
 
 ##################################################
 ##Conferência dos Dados
